@@ -7,7 +7,7 @@ const envs = {
 
 module.exports = {
   mode: envs.prod,
-  devtool: "source-map",
+  devtool: "none",
   entry: "./src/index.js",
   output: {
     path: path.resolve(__dirname, "dist"),
