@@ -4,6 +4,6 @@ module.exports = {
     file: "app/javascript/application.js",
     format: "iife",
     inlineDynamicImports: true,
-    sourcemap: true
+    sourcemap: false
   },
 }
