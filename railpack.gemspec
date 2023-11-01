@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["21tycoons, LLC", "Liroy Leshed"]
   spec.email = ["liroy@tycooncrm.com"]
 
-  spec.summary = 'Use webpack to manage JavaScript without the "asset pipeline" in Rails'
+  spec.summary = 'Use webpack/esbuild/bun/rollup to manage JavaScript without the "asset pipeline" in Rails'
   # spec.description = "TODO: Write a longer description or delete this line."
   spec.homepage = "https://github.com/21tycoons/railpack"
   spec.license = "MIT"
