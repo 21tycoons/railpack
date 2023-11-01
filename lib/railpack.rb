@@ -4,5 +4,8 @@ require_relative "railpack/version"
 
 module Railpack
   class Error < StandardError; end
-  # Your code goes here...
+
+  class Base
+    # Your code goes here...
+  end
 end
