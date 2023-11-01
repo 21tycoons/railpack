@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Use webpack to manage JavaScript without the "asset pipeline" in Rails'
   # spec.description = "TODO: Write a longer description or delete this line."
-  spec.homepage = "https://github.com/liroyleshed/railpack"
+  spec.homepage = "https://github.com/21tycoons/railpack"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
 
