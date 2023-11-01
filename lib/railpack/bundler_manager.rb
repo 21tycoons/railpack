@@ -1,0 +1,2 @@
+class Railpack::BundlerManager
+end
