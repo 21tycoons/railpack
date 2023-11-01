@@ -1,6 +1,6 @@
 # Railpack
 
-Use webpack/esbuild/bun/rollup to manage JavaScript without the "asset pipeline" in Rails.
+Use webpack/esbuild/bun/rollup to manage JavaScript without the "asset pipeline" in your Rails app.
 
 ## Installation
 
