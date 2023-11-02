@@ -1,0 +1,2 @@
+class Railpack::Configuration
+end
