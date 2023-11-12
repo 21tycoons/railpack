@@ -5,7 +5,7 @@ require_relative "lib/railpack/version"
 Gem::Specification.new do |spec|
   spec.name = "railpack"
   spec.version = Railpack::VERSION
-  spec.authors = ["21tycoons, LLC", "Liroy Leshed"]
+  spec.authors = ["21tycoons LLC", "Liroy Leshed"]
   spec.email = ["liroy@tycooncrm.com"]
 
   spec.summary = 'Use webpack/esbuild/bun/rollup to manage JavaScript without the "asset pipeline" in Rails'
