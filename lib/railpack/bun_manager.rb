@@ -1,3 +1,5 @@
 class Railpack::BunManager
-  puts "hello"
+  def exists?
+    puts "hello"
+  end
 end
