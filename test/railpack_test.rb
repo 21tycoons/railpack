@@ -10,4 +10,8 @@ class RailpackTest < Minitest::Test
   def test_it_does_something_useful
     assert false
   end
+
+  def test_bun_manager_exists
+    assert Railpack::BunManager.new.exists?, true
+  end
 end
