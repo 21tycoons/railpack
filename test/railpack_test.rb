@@ -7,10 +7,6 @@ class RailpackTest < Minitest::Test
     refute_nil ::Railpack::VERSION
   end
 
-  def test_it_does_something_useful
-    assert false
-  end
-
   def test_bun_manager_exists
     assert Railpack::BunManager.new.exists?, true
   end
