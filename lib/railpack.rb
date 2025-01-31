@@ -11,9 +11,9 @@ module Railpack
 end
 
 
-require "./railpack/instance"
-require "./railpack/configuration"
-require "./railpack/bun_manager"
-require "./railpack/webpack_manager"
-require "./railpack/esbuild_manager"
-require "./railpack/rollup_manager"
+require_relative "railpack/instance"
+require_relative "railpack/configuration"
+require_relative "railpack/bun_manager"
+require_relative "railpack/webpack_manager"
+require_relative "railpack/esbuild_manager"
+require_relative "railpack/rollup_manager"
