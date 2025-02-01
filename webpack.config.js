@@ -2,7 +2,7 @@ const webpack = require("webpack")
 const path    = require("path")
 const environments = {
   development: "development",
-  production: "production"
+  production:  "production"
 }
 
 module.exports = {
