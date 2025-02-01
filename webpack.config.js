@@ -1,12 +1,12 @@
 const webpack = require("webpack")
-const path = require("path")
-const envs = {
+const path    = require("path")
+const environments = {
   dev: "development",
   prod: "production"
 }
 
 module.exports = {
-  mode: envs.prod,
+  mode: environments.prod,
   devtool: "none",
   entry: "./src/index.js",
   output: {
