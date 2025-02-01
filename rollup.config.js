@@ -5,5 +5,5 @@ module.exports = {
     format: "iife",
     inlineDynamicImports: true,
     sourcemap: false
-  },
+  }
 }
