@@ -4,7 +4,7 @@ import fs from 'fs'
 const config = {
   sourcemap: "external",
   entrypoints: ["app/javascript/application.js"],
-  outdir: path.join(process.cwd(), "app/assets/builds"),
+  outdir: path.join(process.cwd(), "app/assets/builds")
 }
 
 const build = async (config) => {
