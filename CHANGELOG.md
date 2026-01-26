@@ -1,13 +1,14 @@
 ## [Unreleased]
 
-## [1.2.6] - 2026-01-26
+## [1.2.7] - 2026-01-26
 
-- Add dedicated config_test.rb file for Config class unit tests
-- Comprehensive Config class testing with 12 focused unit tests
-- Test initialization, default values, build flags/args, environment overrides
-- Test YAML file loading, error handling, and dynamic method access
-- Improved test organization with separate test files per class
-- All 24 tests passing with 86 assertions
+- Add dedicated test files for Manager and Bundler classes
+- manager_test.rb: 13 unit tests for Manager class functionality
+- bundler_test.rb: 17 unit tests for all bundler implementations
+- Test bundler initialization, commands, inheritance, error handling
+- Test manager bundler creation, bundle size calculation, asset manifest generation
+- Improved test organization with separate test files per major class
+- All 43 tests passing with 137 assertions
 
 ## [1.2.4] - 2026-01-26
 

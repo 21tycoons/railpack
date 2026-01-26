@@ -20,7 +20,7 @@ module Railpack
     end
 
     def name
-      self.class.name.split('::').last.sub('_bundler', '').downcase
+      self.class.name.split('::').last.sub('Bundler', '').downcase
     end
 
     def commands
