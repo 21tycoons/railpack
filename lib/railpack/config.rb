@@ -133,6 +133,10 @@ module Railpack
           "format" => "esm",
           "platform" => "browser"
         },
+        "rollup" => {
+          "format" => "esm",
+          "sourcemap" => true
+        },
         "development" => {
           "sourcemap" => true
         },

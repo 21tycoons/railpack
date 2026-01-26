@@ -4,7 +4,7 @@
 
 ## Features
 
-- 🚀 **Multiple Bundlers**: Bun, esbuild, Rollup, Webpack support
+- 🚀 **Multiple Bundlers**: Bun, esbuild, Rollup support
 - 🔧 **Unified API**: Same interface regardless of bundler
 - 🎯 **Rails Integration**: Seamless asset pipeline integration
 - ⚡ **Hot Module Replacement**: Development server with live reload
