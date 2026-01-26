@@ -130,23 +130,31 @@ module Railpack
 
       manifest = {}
 
-      # Find built assets
+      # Find built assets - Propshaft format
       Dir.glob("#{outdir}/**/*.{js,css}").each do |file|
         next unless File.file?(file)
         relative_path = Pathname.new(file).relative_path_from(Pathname.new(outdir)).to_s
 
-        # Map logical names to physical files
+        # Map logical names to physical files (Propshaft style)
         if relative_path.include?('application') && relative_path.end_with?('.js')
-          manifest['application.js'] = relative_path
+          manifest['application.js'] = {
+            'logical_path' => 'application.js',
+            'pathname' => Pathname.new(relative_path),
+            'digest' => Digest::MD5.file(file).hexdigest
+          }
         elsif relative_path.include?('application') && relative_path.end_with?('.css')
-          manifest['application.css'] = relative_path
+          manifest['application.css'] = {
+            'logical_path' => 'application.css',
+            'pathname' => Pathname.new(relative_path),
+            'digest' => Digest::MD5.file(file).hexdigest
+          }
         end
       end
 
-      # Write manifest for Rails asset pipeline
-      manifest_path = "#{outdir}/.sprockets-manifest-#{Digest::MD5.hexdigest(manifest.to_s)}.json"
+      # Write manifest for Propshaft (Rails 7+ default)
+      manifest_path = "#{outdir}/.manifest.json"
       File.write(manifest_path, JSON.pretty_generate(manifest))
-      Railpack.logger.debug "📄 Generated asset manifest: #{manifest_path}"
+      Railpack.logger.debug "📄 Generated Propshaft manifest: #{manifest_path}"
     rescue => error
       Railpack.logger.warn "⚠️  Failed to generate asset manifest: #{error.message}"
     end
