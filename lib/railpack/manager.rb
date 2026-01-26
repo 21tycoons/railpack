@@ -154,7 +154,7 @@ module Railpack
       elsif defined?(Sprockets)
         :sprockets
       else
-        # Default to Propshaft for modern Rails
+        # Default to Propshaft for modern Rails or when no Rails is detected
         :propshaft
       end
     end
@@ -168,20 +168,13 @@ module Railpack
         next unless File.file?(file)
         relative_path = Pathname.new(file).relative_path_from(Pathname.new(outdir)).to_s
 
-        # Map logical names to physical files (Propshaft style)
-        if relative_path.include?('application') && relative_path.end_with?('.js')
-          manifest['application.js'] = {
-            'logical_path' => 'application.js',
-            'pathname' => Pathname.new(relative_path),
-            'digest' => Digest::MD5.file(file).hexdigest
-          }
-        elsif relative_path.include?('application') && relative_path.end_with?('.css')
-          manifest['application.css'] = {
-            'logical_path' => 'application.css',
-            'pathname' => Pathname.new(relative_path),
-            'digest' => Digest::MD5.file(file).hexdigest
-          }
-        end
+        # Use relative path as logical path for Propshaft
+        logical_path = relative_path
+        manifest[logical_path] = {
+          'logical_path' => logical_path,
+          'pathname' => Pathname.new(relative_path),
+          'digest' => Digest::MD5.file(file).hexdigest
+        }
       end
 
       # Write manifest for Propshaft (Rails 7+ default)
@@ -206,16 +199,19 @@ module Railpack
         digest = Digest::MD5.file(file).hexdigest
         logical_path = relative_path
 
-        # Map logical names (Sprockets style)
+        # Map logical names (Sprockets style) - only for application files
         if relative_path.include?('application') && relative_path.end_with?('.js')
           manifest['assets']['application.js'] = "#{digest}-#{File.basename(relative_path)}"
           logical_path = 'application.js'
         elsif relative_path.include?('application') && relative_path.end_with?('.css')
           manifest['assets']['application.css'] = "#{digest}-#{File.basename(relative_path)}"
           logical_path = 'application.css'
+        else
+          # For non-application files, still add to files but not to assets mapping
+          logical_path = relative_path
         end
 
-        # Add file entry
+        # Add file entry for all files
         manifest['files']["#{digest}-#{File.basename(relative_path)}"] = {
           'logical_path' => logical_path,
           'pathname' => relative_path,

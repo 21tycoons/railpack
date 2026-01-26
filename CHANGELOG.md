@@ -1,5 +1,16 @@
 ## [Unreleased]
 
+## [1.2.9] - 2026-01-26
+
+- Add comprehensive dedicated test files for Rails integration
+- propshaft_test.rb: 7 focused tests for Propshaft manifest generation
+- sprockets_test.rb: 10 focused tests for Sprockets manifest generation
+- rails_integration_test.rb: Rails-specific integration tests
+- Test subdirectory handling, digest calculation, multiple assets
+- Test manifest structure validation, source map exclusion
+- Test Rails constant detection, logger integration, config loading
+- All 75 tests passing with 229 assertions
+
 ## [1.2.8] - 2026-01-26
 
 - Add Sprockets compatibility for older Rails applications
