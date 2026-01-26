@@ -174,6 +174,5 @@ class ConfigTest < Minitest::Test
                    end
 
     rails_module.define_singleton_method(:root) { Pathname.new(path) }
-    rails_module.define_singleton_method(:env) { 'development' }
   end
 end
