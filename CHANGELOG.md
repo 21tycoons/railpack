@@ -1,5 +1,13 @@
 ## [Unreleased]
 
+## [1.2.3] - 2026-01-26
+
+- Add install scaffold generator (`rails railpack:install`)
+- Create default `config/railpack.yml` with sensible Rails defaults
+- Add `rails railpack:install:force` for overwriting existing config
+- Update README with install instructions
+- Similar to jsbundling install experience
+
 ## [1.2.2] - 2026-01-26
 
 - Fix asset manifest generation for Propshaft compatibility

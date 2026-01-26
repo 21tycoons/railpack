@@ -19,6 +19,14 @@ Add to your Gemfile:
 gem 'railpack'
 ```
 
+Then run the install generator:
+
+```bash
+rails railpack:install
+```
+
+This creates `config/railpack.yml` with sensible defaults for your Rails app.
+
 ## Configuration
 
 Create `config/railpack.yml`:
