@@ -16,7 +16,7 @@ module Railpack
     attr_writer :logger
 
     def logger
-      @logger ||= Logger.new($stdout)
+      @logger ||= defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger ? Rails.logger : Logger.new($stdout)
     end
 
     def config

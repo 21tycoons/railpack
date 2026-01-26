@@ -10,6 +10,9 @@ require 'railpack'
 class SprocketsTest < Minitest::Test
   def setup
     @temp_dir = Dir.mktmpdir
+
+    # Clear cached logger to avoid interference between tests
+    Railpack.instance_variable_set(:@logger, nil)
   end
 
   def teardown

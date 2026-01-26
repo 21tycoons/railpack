@@ -88,9 +88,9 @@ module Railpack
     end
 
     # Rails asset pipeline integration
-    def self.enhance_assets_precompile(*tasks)
+    def self.enhance_assets_precompile(*tasks, &block)
       if defined?(Rake::Task) && Rake::Task.task_defined?("assets:precompile")
-        Rake::Task["assets:precompile"].enhance(tasks)
+        Rake::Task["assets:precompile"].enhance(tasks, &block)
       end
     end
 
@@ -150,8 +150,8 @@ module Railpack
       # Check for Propshaft (Rails 7+ default)
       if defined?(Propshaft) || (defined?(Rails) && Rails.version.to_f >= 7.0)
         :propshaft
-      # Check for Sprockets
-      elsif defined?(Sprockets)
+      # Check for Sprockets (only if Rails < 7)
+      elsif defined?(Sprockets) && defined?(Rails) && Rails.version.to_f < 7.0
         :sprockets
       else
         # Default to Propshaft for modern Rails or when no Rails is detected
@@ -172,7 +172,7 @@ module Railpack
         logical_path = relative_path
         manifest[logical_path] = {
           'logical_path' => logical_path,
-          'pathname' => Pathname.new(relative_path),
+          'pathname' => relative_path,
           'digest' => Digest::MD5.file(file).hexdigest
         }
       end

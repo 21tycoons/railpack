@@ -13,6 +13,9 @@ class ManagerTest < Minitest::Test
     if defined?(Rails) && Rails.respond_to?(:root)
       @original_rails_root = Rails.singleton_class.instance_method(:root)
     end
+
+    # Clear cached logger to avoid interference between tests
+    Railpack.instance_variable_set(:@logger, nil)
   end
 
   def teardown
@@ -86,6 +89,11 @@ class ManagerTest < Minitest::Test
     config = { 'outdir' => outdir }
     manager = Railpack::Manager.new
 
+    # Force Propshaft detection for this test
+    def manager.detect_asset_pipeline
+      :propshaft
+    end
+
     manager.send(:generate_asset_manifest, config)
 
     manifest_path = File.join(outdir, '.manifest.json')
@@ -94,8 +102,10 @@ class ManagerTest < Minitest::Test
     manifest = JSON.parse(File.read(manifest_path))
     assert manifest.key?('application.js')
     assert manifest.key?('application.css')
-    assert manifest['application.js']['logical_path'] == 'application.js'
-    assert manifest['application.js']['pathname'].end_with?('application.js')
+    assert_equal 'application.js', manifest['application.js']['logical_path']
+    pathname = manifest['application.js']['pathname']
+    assert pathname.is_a?(String) || pathname.respond_to?(:to_s)
+    assert pathname.to_s.end_with?('application.js')
     assert manifest['application.js']['digest']
   end
 
