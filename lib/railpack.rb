@@ -1,4 +1,5 @@
 # Railpack - Multi-bundler asset pipeline for Rails
+require 'logger'
 require_relative "railpack/version"
 require_relative "railpack/bundler"
 require_relative "railpack/bundlers/bun_bundler"
@@ -12,7 +13,11 @@ module Railpack
   class Error < StandardError; end
 
   class << self
-    attr_accessor :logger
+    attr_writer :logger
+
+    def logger
+      @logger ||= Logger.new($stdout)
+    end
 
     def config
       @config ||= Config.new

@@ -1,5 +1,14 @@
 ## [Unreleased]
 
+## [1.2.4] - 2026-01-26
+
+- Add comprehensive test suite (18 tests, 62 assertions)
+- Test config system, bundler implementations, manager functionality
+- Test event hooks, error handling, asset manifest generation
+- Test bundle size calculation and Rails integration
+- Add default logger with Logger.new($stdout)
+- Fix logger nil issues in manager
+
 ## [1.2.3] - 2026-01-26
 
 - Add install scaffold generator (`rails railpack:install`)
