@@ -179,6 +179,10 @@ BUNDLERS = {
 3. Update documentation
 4. Submit a PR
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
+
 ## License
 
 MIT License - see LICENSE.txt
