@@ -10,7 +10,15 @@ module Railpack
       @config = load_config
     end
 
-    def for_environment(env = Rails.env)
+    def current_env
+      if defined?(Rails) && Rails.respond_to?(:env)
+        Rails.env
+      else
+        :development
+      end
+    end
+
+    def for_environment(env = current_env)
       base_config = @config["default"] || {}
       bundler_config = bundler_config(env)
       env_config = @config[env.to_s] || {}
@@ -19,11 +27,14 @@ module Railpack
       deep_merge(deep_merge(base_config, bundler_config), env_config)
     end
 
-    def bundler(env = Rails.env)
-      for_environment(env)['bundler'] || 'bun'
+    def bundler(env = current_env)
+      # Look directly in config to avoid circular dependency
+      env_config = @config[env.to_s] || {}
+      default_config = @config["default"] || {}
+      env_config['bundler'] || default_config['bundler'] || 'bun'
     end
 
-    def bundler_config(env = Rails.env)
+    def bundler_config(env = current_env)
       bundler_name = bundler(env)
       @config[bundler_name] || {}
     end
@@ -33,11 +44,11 @@ module Railpack
       if method.end_with?('=')
         # Setter - allow initializer to override config
         key = config_key.chomp('=')
-        @config[Rails.env.to_s] ||= {}
-        @config[Rails.env.to_s][key] = args.first
+        @config[current_env.to_s] ||= {}
+        @config[current_env.to_s][key] = args.first
       else
         # Getter - read from merged config
-        env = args.first || Rails.env
+        env = args.first || current_env
         return for_environment(env)[config_key] if for_environment(env).key?(config_key)
         super
       end
@@ -45,12 +56,12 @@ module Railpack
 
     def respond_to_missing?(method, include_private = false)
       config_key = method.to_s.chomp('=')
-      env = Rails.env
+      env = current_env
       for_environment(env).key?(config_key) || super
     end
 
     # Build command flags from config
-    def build_flags(env = Rails.env)
+    def build_flags(env = current_env)
       cfg = for_environment(env)
       flags = []
 
@@ -64,7 +75,7 @@ module Railpack
     end
 
     # Build command arguments
-    def build_args(env = Rails.env)
+    def build_args(env = current_env)
       cfg = for_environment(env)
       args = []
 
@@ -85,7 +96,11 @@ module Railpack
     private
 
     def config_path
-      Rails.root.join("config", "railpack.yml")
+      if defined?(Rails) && Rails.respond_to?(:root)
+        Rails.root.join("config", "railpack.yml")
+      else
+        Pathname.new("config/railpack.yml")
+      end
     end
 
     def load_config
@@ -112,6 +127,11 @@ module Railpack
         "bun" => {
           "target" => "browser",
           "format" => "esm"
+        },
+        "esbuild" => {
+          "target" => "browser",
+          "format" => "esm",
+          "platform" => "browser"
         },
         "development" => {
           "sourcemap" => true

@@ -2,6 +2,7 @@
 require_relative "railpack/version"
 require_relative "railpack/bundler"
 require_relative "railpack/bundlers/bun_bundler"
+require_relative "railpack/bundlers/esbuild_bundler"
 require_relative "railpack/config"
 require_relative "railpack/manager"
 

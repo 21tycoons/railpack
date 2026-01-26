@@ -1,7 +1,8 @@
 module Railpack
   class Manager
     BUNDLERS = {
-      'bun' => BunBundler
+      'bun' => BunBundler,
+      'esbuild' => EsbuildBundler
     }
 
     def initialize

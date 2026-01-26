@@ -4,7 +4,7 @@
 
 ## Features
 
-- 🚀 **Multiple Bundlers**: Bun, Rollup, Webpack, esbuild support
+- 🚀 **Multiple Bundlers**: Bun, esbuild, Rollup, Webpack support
 - 🔧 **Unified API**: Same interface regardless of bundler
 - 🎯 **Rails Integration**: Seamless asset pipeline integration
 - ⚡ **Hot Module Replacement**: Development server with live reload
@@ -130,7 +130,18 @@ end
 Change the `bundler` setting in `config/railpack.yml`:
 
 ```yaml
-bundler: rollup  # Switch from bun to rollup
+bundler: esbuild  # Switch to esbuild for speed
+```
+
+Or use esbuild:
+
+```yaml
+bundler: esbuild
+
+esbuild:
+  platform: browser
+  target: es2015
+  minify: true
 ```
 
 Railpack handles the rest - same API, different bundler under the hood.
