@@ -137,6 +137,10 @@ module Railpack
           "format" => "esm",
           "sourcemap" => true
         },
+        "webpack" => {
+          "mode" => "production",
+          "target" => "web"
+        },
         "development" => {
           "sourcemap" => true
         },

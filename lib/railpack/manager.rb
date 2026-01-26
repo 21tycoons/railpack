@@ -3,7 +3,8 @@ module Railpack
     BUNDLERS = {
       'bun' => BunBundler,
       'esbuild' => EsbuildBundler,
-      'rollup' => RollupBundler
+      'rollup' => RollupBundler,
+      'webpack' => WebpackBundler
     }
 
     def initialize

@@ -20,8 +20,10 @@ class RailpackTest < Minitest::Test
     assert_includes Railpack::Manager::BUNDLERS.keys, 'bun'
     assert_includes Railpack::Manager::BUNDLERS.keys, 'esbuild'
     assert_includes Railpack::Manager::BUNDLERS.keys, 'rollup'
+    assert_includes Railpack::Manager::BUNDLERS.keys, 'webpack'
     assert_equal Railpack::BunBundler, Railpack::Manager::BUNDLERS['bun']
     assert_equal Railpack::EsbuildBundler, Railpack::Manager::BUNDLERS['esbuild']
     assert_equal Railpack::RollupBundler, Railpack::Manager::BUNDLERS['rollup']
+    assert_equal Railpack::WebpackBundler, Railpack::Manager::BUNDLERS['webpack']
   end
 end
