@@ -1,14 +1,14 @@
 ## [Unreleased]
 
-## [1.2.7] - 2026-01-26
+## [1.2.8] - 2026-01-26
 
-- Add dedicated test files for Manager and Bundler classes
-- manager_test.rb: 13 unit tests for Manager class functionality
-- bundler_test.rb: 17 unit tests for all bundler implementations
-- Test bundler initialization, commands, inheritance, error handling
-- Test manager bundler creation, bundle size calculation, asset manifest generation
-- Improved test organization with separate test files per major class
-- All 43 tests passing with 137 assertions
+- Add Sprockets compatibility for older Rails applications
+- Automatic asset pipeline detection (Propshaft vs Sprockets)
+- Generate appropriate manifest format based on Rails version
+- Propshaft manifest: .manifest.json (Rails 7+ default)
+- Sprockets manifest: .sprockets-manifest-*.json (Rails < 7)
+- Enhanced Rails integration for broader compatibility
+- All 46 tests passing with 147 assertions
 
 ## [1.2.4] - 2026-01-26
 

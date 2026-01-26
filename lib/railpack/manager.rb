@@ -128,6 +128,39 @@ module Railpack
       outdir = config['outdir']
       return unless outdir && Dir.exist?(outdir)
 
+      # Detect asset pipeline type
+      pipeline_type = detect_asset_pipeline
+
+      case pipeline_type
+      when :propshaft
+        generate_propshaft_manifest(config)
+      when :sprockets
+        generate_sprockets_manifest(config)
+      else
+        # Default to Propshaft for Rails 7+
+        generate_propshaft_manifest(config)
+      end
+    rescue => error
+      Railpack.logger.warn "⚠️  Failed to generate asset manifest: #{error.message}"
+    end
+
+    private
+
+    def detect_asset_pipeline
+      # Check for Propshaft (Rails 7+ default)
+      if defined?(Propshaft) || (defined?(Rails) && Rails.version.to_f >= 7.0)
+        :propshaft
+      # Check for Sprockets
+      elsif defined?(Sprockets)
+        :sprockets
+      else
+        # Default to Propshaft for modern Rails
+        :propshaft
+      end
+    end
+
+    def generate_propshaft_manifest(config)
+      outdir = config['outdir']
       manifest = {}
 
       # Find built assets - Propshaft format
@@ -155,8 +188,47 @@ module Railpack
       manifest_path = "#{outdir}/.manifest.json"
       File.write(manifest_path, JSON.pretty_generate(manifest))
       Railpack.logger.debug "📄 Generated Propshaft manifest: #{manifest_path}"
-    rescue => error
-      Railpack.logger.warn "⚠️  Failed to generate asset manifest: #{error.message}"
+    end
+
+    def generate_sprockets_manifest(config)
+      outdir = config['outdir']
+      manifest = {
+        'files' => {},
+        'assets' => {}
+      }
+
+      # Find built assets - Sprockets format
+      Dir.glob("#{outdir}/**/*.{js,css}").each do |file|
+        next unless File.file?(file)
+        relative_path = Pathname.new(file).relative_path_from(Pathname.new(outdir)).to_s
+
+        # Generate digest for Sprockets format
+        digest = Digest::MD5.file(file).hexdigest
+        logical_path = relative_path
+
+        # Map logical names (Sprockets style)
+        if relative_path.include?('application') && relative_path.end_with?('.js')
+          manifest['assets']['application.js'] = "#{digest}-#{File.basename(relative_path)}"
+          logical_path = 'application.js'
+        elsif relative_path.include?('application') && relative_path.end_with?('.css')
+          manifest['assets']['application.css'] = "#{digest}-#{File.basename(relative_path)}"
+          logical_path = 'application.css'
+        end
+
+        # Add file entry
+        manifest['files']["#{digest}-#{File.basename(relative_path)}"] = {
+          'logical_path' => logical_path,
+          'pathname' => relative_path,
+          'digest' => digest,
+          'size' => File.size(file),
+          'mtime' => File.mtime(file).iso8601
+        }
+      end
+
+      # Write manifest for Sprockets (Rails < 7)
+      manifest_path = "#{outdir}/.sprockets-manifest-#{Digest::MD5.hexdigest(outdir)}.json"
+      File.write(manifest_path, JSON.pretty_generate(manifest))
+      Railpack.logger.debug "📄 Generated Sprockets manifest: #{manifest_path}"
     end
   end
 end

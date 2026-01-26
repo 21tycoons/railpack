@@ -106,6 +106,11 @@ class ManagerTest < Minitest::Test
     config = { 'outdir' => outdir }
     manager = Railpack::Manager.new
 
+    # Ensure Propshaft detection for this test
+    def manager.detect_asset_pipeline
+      :propshaft
+    end
+
     manager.send(:generate_asset_manifest, config)
 
     manifest_path = File.join(outdir, '.manifest.json')
@@ -169,6 +174,70 @@ class ManagerTest < Minitest::Test
     assert_equal Railpack::EsbuildBundler, Railpack::Manager::BUNDLERS['esbuild']
     assert_equal Railpack::RollupBundler, Railpack::Manager::BUNDLERS['rollup']
     assert_equal Railpack::WebpackBundler, Railpack::Manager::BUNDLERS['webpack']
+  end
+
+  def test_detect_asset_pipeline_propshaft
+    manager = Railpack::Manager.new
+
+    # Mock Rails version for Propshaft detection
+    rails_module = if defined?(Rails)
+                     Rails
+                   else
+                     Object.const_set(:Rails, Module.new)
+                   end
+    rails_module.define_singleton_method(:version) { '7.0.0' }
+
+    pipeline = manager.send(:detect_asset_pipeline)
+    assert_equal :propshaft, pipeline
+  end
+
+  def test_detect_asset_pipeline_sprockets
+    manager = Railpack::Manager.new
+
+    # Mock Sprockets being available
+    Object.const_set(:Sprockets, Module.new) unless defined?(Sprockets)
+
+    # Mock Rails version for Sprockets detection
+    rails_module = if defined?(Rails)
+                     Rails
+                   else
+                     Object.const_set(:Rails, Module.new)
+                   end
+    rails_module.define_singleton_method(:version) { '6.1.0' }
+
+    pipeline = manager.send(:detect_asset_pipeline)
+    assert_equal :sprockets, pipeline
+  ensure
+    Object.send(:remove_const, :Sprockets) if defined?(Sprockets) && Sprockets.name.nil?
+  end
+
+  def test_generate_sprockets_manifest
+    outdir = File.join(@temp_dir, 'builds')
+    FileUtils.mkdir_p(outdir)
+
+    # Create fake built assets
+    File.write(File.join(outdir, 'application.js'), 'console.log("app");')
+    File.write(File.join(outdir, 'application.css'), 'body { color: blue; }')
+
+    config = { 'outdir' => outdir }
+    manager = Railpack::Manager.new
+
+    manager.send(:generate_sprockets_manifest, config)
+
+    manifest_path = Dir.glob("#{outdir}/.sprockets-manifest-*.json").first
+    assert manifest_path
+    assert File.exist?(manifest_path)
+
+    manifest = JSON.parse(File.read(manifest_path))
+    assert manifest.key?('files')
+    assert manifest.key?('assets')
+    assert manifest['assets'].key?('application.js')
+    assert manifest['assets'].key?('application.css')
+
+    # Check file entries
+    js_digest = manifest['assets']['application.js']
+    assert manifest['files'].key?(js_digest)
+    assert_equal 'application.js', manifest['files'][js_digest]['logical_path']
   end
 
   private
