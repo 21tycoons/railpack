@@ -145,7 +145,9 @@ module Railpack
           "sourcemap" => true
         },
         "production" => {
-          "minify" => true
+          "minify" => true,
+          "sourcemap" => false,
+          "analyze_bundle" => false
         }
       }
     end

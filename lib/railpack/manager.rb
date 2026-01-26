@@ -1,3 +1,6 @@
+require 'digest'
+require 'pathname'
+
 module Railpack
   class Manager
     BUNDLERS = {
@@ -13,16 +16,45 @@ module Railpack
 
     # Unified API - delegate to the selected bundler
     def build!(args = [])
+      start_time = Time.now
       config = Railpack.config.for_environment(Rails.env)
       Railpack.trigger_build_start(config)
 
       begin
+        Railpack.logger.info "🚀 Starting #{config['bundler']} build for #{Rails.env} environment"
         result = @bundler.build!(args)
-        Railpack.trigger_build_complete({ success: true, config: config })
+        duration = ((Time.now - start_time) * 1000).round(2)
+
+        # Calculate bundle size if output directory exists
+        bundle_size = calculate_bundle_size(config)
+
+        success_result = {
+          success: true,
+          config: config,
+          duration: duration,
+          bundle_size: bundle_size
+        }
+
+        Railpack.logger.info "✅ Build completed successfully in #{duration}ms (#{bundle_size}kb)"
+
+        # Generate asset manifest for Rails
+        generate_asset_manifest(config)
+
+        Railpack.trigger_build_complete(success_result)
         result
       rescue => error
+        duration = ((Time.now - start_time) * 1000).round(2)
+        Railpack.logger.error "❌ Build failed after #{duration}ms: #{error.message}"
+
+        error_result = {
+          success: false,
+          error: error,
+          config: config,
+          duration: duration
+        }
+
         Railpack.trigger_error(error)
-        Railpack.trigger_build_complete({ success: false, error: error, config: config })
+        Railpack.trigger_build_complete(error_result)
         raise
       end
     end
@@ -76,6 +108,47 @@ module Railpack
       end
 
       bundler_class.new(Railpack.config)
+    end
+
+    def calculate_bundle_size(config)
+      outdir = config['outdir']
+      return 'unknown' unless outdir && Dir.exist?(outdir)
+
+      total_size = 0
+      Dir.glob("#{outdir}/**/*.{js,css,map}").each do |file|
+        total_size += File.size(file) if File.file?(file)
+      end
+
+      (total_size / 1024.0).round(2)
+    rescue
+      'unknown'
+    end
+
+    def generate_asset_manifest(config)
+      outdir = config['outdir']
+      return unless outdir && Dir.exist?(outdir)
+
+      manifest = {}
+
+      # Find built assets
+      Dir.glob("#{outdir}/**/*.{js,css}").each do |file|
+        next unless File.file?(file)
+        relative_path = Pathname.new(file).relative_path_from(Pathname.new(outdir)).to_s
+
+        # Map logical names to physical files
+        if relative_path.include?('application') && relative_path.end_with?('.js')
+          manifest['application.js'] = relative_path
+        elsif relative_path.include?('application') && relative_path.end_with?('.css')
+          manifest['application.css'] = relative_path
+        end
+      end
+
+      # Write manifest for Rails asset pipeline
+      manifest_path = "#{outdir}/.sprockets-manifest-#{Digest::MD5.hexdigest(manifest.to_s)}.json"
+      File.write(manifest_path, JSON.pretty_generate(manifest))
+      Railpack.logger.debug "📄 Generated asset manifest: #{manifest_path}"
+    rescue => error
+      Railpack.logger.warn "⚠️  Failed to generate asset manifest: #{error.message}"
     end
   end
 end
