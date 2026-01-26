@@ -1,4 +1,4 @@
-# Railpack
+# Railpack 🎒
 
 **Multi-bundler asset pipeline for Rails** - Choose your bundler, unified Rails integration.
 
