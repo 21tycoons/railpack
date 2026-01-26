@@ -1,11 +1,13 @@
 ## [Unreleased]
 
-## [1.2.5] - 2026-01-26
+## [1.2.6] - 2026-01-26
 
-- Add test_config_yaml_file_loading test for YAML config file loading
-- Test that Railpack correctly reads config/railpack.yml from Rails.root
-- Test bundler selection, environment overrides, and config merging
-- All 19 tests passing with 72 assertions
+- Add dedicated config_test.rb file for Config class unit tests
+- Comprehensive Config class testing with 12 focused unit tests
+- Test initialization, default values, build flags/args, environment overrides
+- Test YAML file loading, error handling, and dynamic method access
+- Improved test organization with separate test files per class
+- All 24 tests passing with 86 assertions
 
 ## [1.2.4] - 2026-01-26
 
