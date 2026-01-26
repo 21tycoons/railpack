@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [1.2.5] - 2026-01-26
+
+- Add test_config_yaml_file_loading test for YAML config file loading
+- Test that Railpack correctly reads config/railpack.yml from Rails.root
+- Test bundler selection, environment overrides, and config merging
+- All 19 tests passing with 72 assertions
+
 ## [1.2.4] - 2026-01-26
 
 - Add comprehensive test suite (19 tests, 72 assertions)
