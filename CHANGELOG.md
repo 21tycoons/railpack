@@ -2,10 +2,11 @@
 
 ## [1.2.4] - 2026-01-26
 
-- Add comprehensive test suite (18 tests, 62 assertions)
-- Test config system, bundler implementations, manager functionality
-- Test event hooks, error handling, asset manifest generation
-- Test bundle size calculation and Rails integration
+- Add comprehensive test suite (19 tests, 72 assertions)
+- Test config system including YAML file loading from Rails.root
+- Test bundler implementations, manager features, event hooks
+- Test error handling, asset manifest generation, bundle size calculation
+- Test Rails integration and environment overrides
 - Add default logger with Logger.new($stdout)
 - Fix logger nil issues in manager
 

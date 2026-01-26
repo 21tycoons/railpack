@@ -56,6 +56,55 @@ class RailpackTest < Minitest::Test
     assert_equal './app/javascript/application.js', config.entrypoint
   end
 
+  def test_config_yaml_file_loading
+    # Test that Railpack can load config from a YAML file
+    config_dir = File.join(@temp_dir, 'config')
+    FileUtils.mkdir_p(config_dir)
+    config_file = File.join(config_dir, 'railpack.yml')
+
+    File.write(config_file, <<~YAML)
+      default:
+        bundler: rollup
+        target: node
+        format: cjs
+        entrypoint: "./server.js"
+        outdir: "dist"
+        minify: false
+      development:
+        sourcemap: true
+      production:
+        minify: true
+        sourcemap: false
+    YAML
+
+    # Verify the file was created
+    assert File.exist?(config_file), "Config file should exist at #{config_file}"
+
+    # Mock Rails.root to point to our temp directory
+    mock_rails_root(@temp_dir)
+
+    # Create a fresh config instance to test file loading
+    config = Railpack::Config.new
+
+
+
+    # Test that the YAML file was loaded correctly
+    assert_equal 'rollup', config.bundler
+    assert_equal './server.js', config.entrypoint
+    assert_equal 'dist', config.outdir
+    assert_equal 'node', config.target
+    assert_equal 'cjs', config.format
+    assert_equal false, config.minify
+
+    # Test environment overrides
+    dev_config = config.for_environment('development')
+    prod_config = config.for_environment('production')
+
+    assert_equal true, dev_config['sourcemap']
+    assert_equal true, prod_config['minify']
+    assert_equal false, prod_config['sourcemap']
+  end
+
   def test_config_environment_overrides
     # Test environment override logic with default config
     config = Railpack::Config.new
