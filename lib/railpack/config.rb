@@ -142,107 +142,107 @@ module Railpack
 
     private
 
-    def config_path
-      if defined?(Rails) && Rails.respond_to?(:root)
-        Rails.root.join("config", "railpack.yml")
-      else
-        Pathname.new("config/railpack.yml")
+      def config_path
+        if defined?(Rails) && Rails.respond_to?(:root)
+          Rails.root.join("config", "railpack.yml")
+        else
+          Pathname.new("config/railpack.yml")
+        end
       end
-    end
 
-    def load_config
-      if config_path.exist?
-        YAML.safe_load(File.read(config_path), permitted_classes: [], aliases: false)
-      else
-        default_config
+      def load_config
+        if config_path.exist?
+          YAML.safe_load(File.read(config_path), permitted_classes: [], aliases: false)
+        else
+          default_config
+        end
+      rescue Psych::SyntaxError => e
+        raise Error, "Invalid YAML in #{config_path}: #{e.message}"
       end
-    rescue Psych::SyntaxError => e
-      raise Error, "Invalid YAML in #{config_path}: #{e.message}"
-    end
 
-    def default_config
-      {
-        "default" => {
-          "bundler" => "bun",
-          "target" => "browser",
-          "format" => "esm",
-          "minify" => false,
-          "sourcemap" => false,
-          "entrypoint" => "./app/javascript/application.js",
-          "outdir" => "app/assets/builds"
-        },
-        "bun" => {
-          "target" => "browser",
-          "format" => "esm"
-        },
-        "esbuild" => {
-          "target" => "browser",
-          "format" => "esm",
-          "platform" => "browser"
-        },
-        "rollup" => {
-          "format" => "esm",
-          "sourcemap" => true
-        },
-        "webpack" => {
-          "mode" => "production",
-          "target" => "web"
-        },
-        "development" => {
-          "sourcemap" => true
-        },
-        "production" => {
-          "minify" => true,
-          "sourcemap" => false,
-          "analyze_bundle" => false
+      def default_config
+        {
+          "default" => {
+            "bundler" => "bun",
+            "target" => "browser",
+            "format" => "esm",
+            "minify" => false,
+            "sourcemap" => false,
+            "entrypoint" => "./app/javascript/application.js",
+            "outdir" => "app/assets/builds"
+          },
+          "bun" => {
+            "target" => "browser",
+            "format" => "esm"
+          },
+          "esbuild" => {
+            "target" => "browser",
+            "format" => "esm",
+            "platform" => "browser"
+          },
+          "rollup" => {
+            "format" => "esm",
+            "sourcemap" => true
+          },
+          "webpack" => {
+            "mode" => "production",
+            "target" => "web"
+          },
+          "development" => {
+            "sourcemap" => true
+          },
+          "production" => {
+            "minify" => true,
+            "sourcemap" => false,
+            "analyze_bundle" => false
+          }
         }
-      }
-    end
+      end
 
-    def deep_merge(hash1, hash2)
-      hash1.merge(hash2) do |key, old_val, new_val|
-        if old_val.is_a?(Hash) && new_val.is_a?(Hash)
-          deep_merge(old_val, new_val)
-        else
-          new_val
+      def deep_merge(hash1, hash2)
+        hash1.merge(hash2) do |key, old_val, new_val|
+          if old_val.is_a?(Hash) && new_val.is_a?(Hash)
+            deep_merge(old_val, new_val)
+          else
+            new_val
+          end
         end
       end
-    end
 
-    def validate_config!(config, env)
-      # Validate critical config values in production
-      if env.to_s == 'production'
-        if config['outdir'].nil? || config['outdir'].to_s.empty?
-          raise Error, "Production config must specify 'outdir'"
+      def validate_config!(config, env)
+        # Validate critical config values in production
+        if env.to_s == 'production'
+          if config['outdir'].nil? || config['outdir'].to_s.empty?
+            raise Error, "Production config must specify 'outdir'"
+          end
+
+          bundler_name = config['bundler']
+          if bundler_name.nil? || bundler_name.to_s.empty?
+            raise Error, "Production config must specify 'bundler'"
+          end
         end
 
+        # Validate bundler name exists in known bundlers
         bundler_name = config['bundler']
-        if bundler_name.nil? || bundler_name.to_s.empty?
-          raise Error, "Production config must specify 'bundler'"
+        if bundler_name && !@config.key?(bundler_name)
+          message = "Unknown bundler '#{bundler_name}'. Known bundlers: #{@config.keys.grep(/^(bun|esbuild|rollup|webpack)$/).join(', ')}"
+          if ENV['RAILPACK_STRICT']
+            raise Error, message
+          else
+            Railpack.logger.warn(message)
+          end
         end
       end
 
-      # Validate bundler name exists in known bundlers
-      bundler_name = config['bundler']
-      if bundler_name && !@config.key?(bundler_name)
-        message = "Unknown bundler '#{bundler_name}'. Known bundlers: #{@config.keys.grep(/^(bun|esbuild|rollup|webpack)$/).join(', ')}"
-        if ENV['RAILPACK_STRICT']
-          raise Error, message
+      def deep_freeze(object)
+        case object
+        when Hash
+          object.each_value { |v| deep_freeze(v) }.freeze
+        when Array
+          object.each { |v| deep_freeze(v) }.freeze
         else
-          Railpack.logger.warn(message)
+          object.freeze
         end
       end
-    end
-
-    def deep_freeze(object)
-      case object
-      when Hash
-        object.each_value { |v| deep_freeze(v) }.freeze
-      when Array
-        object.each { |v| deep_freeze(v) }.freeze
-      else
-        object.freeze
-      end
-    end
   end
 end
