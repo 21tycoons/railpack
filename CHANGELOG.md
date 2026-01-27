@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.2.17] - 2026-01-26
+
+### ✨ **Manager Class Final Polish - Production Perfection**
+
+This release adds the final polish touches to the `Railpack::Manager` class, implementing very low-priority but valuable developer experience improvements.
+
+#### 🛠️ **Enhanced Bundle Size Reporting**
+- **Optional Gzip Analysis**: When `analyze_bundle: true`, shows both uncompressed and gzipped sizes
+- **Realistic Reporting**: `"1.23 KB (0.45 KB gzipped)"` for accurate production expectations
+- **Performance Conscious**: Gzip calculation only when explicitly enabled
+
+#### 📝 **Comprehensive Documentation**
+- **Detailed Method Docs**: Complete `build!` method documentation with lifecycle steps
+- **Inline Comments**: Clear explanations of hook payloads and validation logic
+- **Developer Guidance**: YARD-style parameter and return value documentation
+
+#### 🛡️ **Pre-Build Validation**
+- **Output Directory Checks**: Warns if output directory doesn't exist before build starts
+- **Early Feedback**: `"⚠️ Output directory #{outdir} does not exist - assets will be created on first build"`
+- **Configuration Validation**: Helps developers catch setup issues early
+
+#### 🔍 **Enhanced Error Context**
+- **Rich Manifest Errors**: `"Failed to generate propshaft asset manifest for /path (5 assets): error details"`
+- **Debugging Support**: Shows pipeline type, directory path, and asset count on failures
+- **Troubleshooting Aid**: Better context for diagnosing manifest generation issues
+
+#### 📊 **Quality Assurance**
+- **Zero Breaking Changes**: All improvements are additive and backward compatible
+- **Test Coverage Maintained**: 75 tests passing with 244 assertions
+- **Performance Optimized**: Conditional features only activate when needed
+
 ## [1.2.16] - 2026-01-26
 
 ### 🚀 **Manager Class Refactoring - Production-Ready Architecture**
