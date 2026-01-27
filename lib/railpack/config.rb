@@ -4,10 +4,17 @@ module Railpack
   class Config
     class Error < StandardError; end
 
+    # Known config keys that get explicit accessors
+    CONFIG_KEYS = %w[
+      target format minify sourcemap splitting
+      entrypoint entrypoints outdir platform mode analyze_bundle
+    ].freeze
+
     attr_reader :config
 
     def initialize
       @config = load_config
+      @merged_cache = {}
     end
 
     def current_env
@@ -18,13 +25,25 @@ module Railpack
       end
     end
 
-    def for_environment(env = current_env)
-      base_config = @config["default"] || {}
-      bundler_config = bundler_config(env)
-      env_config = @config[env.to_s] || {}
+    # Explicit accessors for known config keys
+    CONFIG_KEYS.each do |key|
+      define_method(key) do |env = current_env|
+        for_environment(env)[key]
+      end
+    end
 
-      # Merge: default <- bundler <- environment
-      deep_merge(deep_merge(base_config, bundler_config), env_config)
+    def for_environment(env = current_env)
+      @merged_cache[env.to_s] ||= begin
+        base_config = @config["default"] || {}
+        bundler_config = bundler_config(env)
+        env_config = @config[env.to_s] || {}
+
+        # Merge: default <- bundler <- environment
+        merged = deep_merge(deep_merge(base_config, bundler_config), env_config)
+
+        # Deep freeze for immutability
+        deep_freeze(merged)
+      end
     end
 
     def bundler(env = current_env)
@@ -42,12 +61,10 @@ module Railpack
     def method_missing(method, *args)
       config_key = method.to_s
       if method.end_with?('=')
-        # Setter - allow initializer to override config
-        key = config_key.chomp('=')
-        @config[current_env.to_s] ||= {}
-        @config[current_env.to_s][key] = args.first
+        # Setter - no longer allowed, config is immutable
+        raise Error, "Config is immutable. Set values in config/railpack.yml"
       else
-        # Getter - read from merged config
+        # Getter - read from merged config (backward compatibility)
         env = args.first || current_env
         return for_environment(env)[config_key] if for_environment(env).key?(config_key)
         super
@@ -105,7 +122,7 @@ module Railpack
 
     def load_config
       if config_path.exist?
-        YAML.safe_load(File.read(config_path), aliases: true)
+        YAML.safe_load(File.read(config_path), permitted_classes: [], aliases: false)
       else
         default_config
       end
@@ -159,6 +176,17 @@ module Railpack
         else
           new_val
         end
+      end
+    end
+
+    def deep_freeze(object)
+      case object
+      when Hash
+        object.each_value { |v| deep_freeze(v) }.freeze
+      when Array
+        object.each { |v| deep_freeze(v) }.freeze
+      else
+        object.freeze
       end
     end
   end
