@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.2.16] - 2026-01-26
+
+### 🚀 **Manager Class Refactoring - Production-Ready Architecture**
+
+This release includes a comprehensive refactoring of the `Railpack::Manager` class, transforming it from a monolithic orchestrator into a clean, maintainable, and extensible system.
+
+#### ✨ **Architecture Improvements**
+- **Extracted Manifest Generation**: Created dedicated `Railpack::Manifest::Propshaft` and `Railpack::Manifest::Sprockets` classes for asset manifest generation
+- **Improved Pipeline Detection**: Direct inspection of `Rails.application.config.assets` class for more reliable asset pipeline detection
+- **Enhanced Bundle Size Reporting**: Human-readable bundle sizes (B, KB, MB, GB) instead of raw bytes
+
+#### 🛡️ **Code Quality & Maintainability**
+- **Reduced Manager Complexity**: Manager class reduced by ~35% (280 → 180 lines)
+- **Separation of Concerns**: Manifest generation isolated from orchestration logic
+- **Comprehensive Documentation**: Added class-level and method-level documentation
+- **Future-Proof Design**: Easy to add new manifest formats or deprecate old ones
+
+#### 📊 **Developer Experience**
+- **Better Error Handling**: Improved error logging with backtrace context
+- **Enhanced Logging**: More informative build completion messages
+- **Thread Safety**: Maintained thread-safe operations throughout refactoring
+
+#### 🔧 **Technical Details**
+- **Manifest Classes**: `Railpack::Manifest::Propshaft` and `Railpack::Manifest::Sprockets` with proper JSON formatting
+- **Pipeline Detection**: Direct Rails config inspection with version-based fallback
+- **Bundle Size**: Human-readable formatting with automatic unit scaling
+- **Backward Compatibility**: Zero breaking changes - all existing APIs preserved
+
+#### 📚 **Benefits**
+- **Testability**: Manifest logic now isolated and independently testable
+- **Extensibility**: Trivial to add support for new asset pipelines (Vite, Webpack 5, etc.)
+- **Maintainability**: Smaller, focused classes with single responsibilities
+- **Performance**: Maintained fast manifest generation and bundle analysis
+
 ## [1.2.15] - 2026-01-26
 
 ### 🚀 **Major Config Class Refactor - Production-Ready Security & Validation**
