@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.1] - 2026-01-26
+
+This patch release includes final polish and documentation improvements.
+
+### Changes
+
+- **Code style**: Properly indented private methods and removed duplicate `private` keyword
+- **Pre-build validation**: Added `FileUtils.mkdir_p(outdir)` to ensure output directories exist before build
+- **Documentation**: Added comprehensive examples for `analyze_bundle` (gzip output), build hooks (payload details), and manifest delegation
+
 ## [1.3.0] - 2026-01-26
 
 ### 🚀 **Major Architecture Refactoring**

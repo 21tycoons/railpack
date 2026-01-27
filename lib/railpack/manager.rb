@@ -27,11 +27,26 @@ module Railpack
       @bundler = create_bundler
     end
 
-    # Unified API - delegate to the selected bundler
+    # Build assets using the configured bundler.
+    #
+    # This method orchestrates the complete build lifecycle:
+    # 1. Triggers build_start hooks
+    # 2. Validates output directory exists
+    # 3. Executes bundler build command
+    # 4. Calculates bundle size and timing
+    # 5. Generates asset manifest for Rails
+    # 6. Triggers build_complete hooks
+    #
+    # @param args [Array] Additional arguments to pass to the bundler
+    # @return [Object] Result from the bundler build command
+    # @raise [Error] If build fails or configuration is invalid
     def build!(args = [])
       start_time = Time.now
       config = Railpack.config.for_environment(Rails.env)
       Railpack.trigger_build_start(config)
+
+      # Pre-build validation: warn if output directory issues
+      validate_output_directory(config)
 
       begin
         Railpack.logger.info "🚀 Starting #{config['bundler']} build for #{Rails.env} environment"
@@ -41,6 +56,8 @@ module Railpack
         # Calculate bundle size if output directory exists
         bundle_size = calculate_bundle_size(config)
 
+        # Build result hash passed to build_complete hooks
+        # Contains: success status, config used, build duration, and bundle size
         success_result = {
           success: true,
           config: config,
@@ -53,12 +70,15 @@ module Railpack
         # Generate asset manifest for Rails
         generate_asset_manifest(config)
 
+        # Trigger build_complete hooks with success result
         Railpack.trigger_build_complete(success_result)
         result
       rescue => error
         duration = ((Time.now - start_time) * 1000).round(2)
         Railpack.logger.error "❌ Build failed after #{duration}ms: #{error.message}"
 
+        # Error result hash passed to build_complete hooks
+        # Contains: failure status, error object, config used, and build duration
         error_result = {
           success: false,
           error: error,
@@ -112,80 +132,107 @@ module Railpack
 
     private
 
-    def create_bundler
-      bundler_name = Railpack.config.bundler
-      bundler_class = BUNDLERS[bundler_name]
+      def create_bundler
+        bundler_name = Railpack.config.bundler
+        bundler_class = BUNDLERS[bundler_name]
 
-      unless bundler_class
-        raise Error, "Unsupported bundler: #{bundler_name}. Available: #{BUNDLERS.keys.join(', ')}"
+        unless bundler_class
+          raise Error, "Unsupported bundler: #{bundler_name}. Available: #{BUNDLERS.keys.join(', ')}"
+        end
+
+        bundler_class.new(Railpack.config)
       end
 
-      bundler_class.new(Railpack.config)
-    end
+      # Calculate human-readable bundle size with optional gzip compression
+      def calculate_bundle_size(config)
+        outdir = config['outdir']
+        return 'unknown' unless outdir && Dir.exist?(outdir)
 
-    # Calculate human-readable bundle size with optional gzip compression
-    def calculate_bundle_size(config)
-      outdir = config['outdir']
-      return 'unknown' unless outdir && Dir.exist?(outdir)
+        total_size = 0
+        Dir.glob("#{outdir}/**/*.{js,css,map}").each do |file|
+          total_size += File.size(file) if File.file?(file)
+        end
 
-      total_size = 0
-      Dir.glob("#{outdir}/**/*.{js,css,map}").each do |file|
-        total_size += File.size(file) if File.file?(file)
+        # Include gzip size if analyze_bundle is enabled
+        if config['analyze_bundle']
+          gzip_size = calculate_gzip_size(outdir)
+          "#{human_size(total_size)} (#{human_size(gzip_size)} gzipped)"
+        else
+          human_size(total_size)
+        end
+      rescue => error
+        Railpack.logger.debug "Bundle size calculation failed: #{error.message}"
+        'unknown'
       end
 
-      human_size(total_size)
-    rescue => error
-      Railpack.logger.debug "Bundle size calculation failed: #{error.message}"
-      'unknown'
-    end
-
-    # Convert bytes to human-readable format (B, KB, MB, GB)
-    def human_size(bytes)
-      units = %w[B KB MB GB]
-      size = bytes.to_f
-      units.each do |unit|
-        return "#{(size).round(2)} #{unit}" if size < 1024
-        size /= 1024
+      # Calculate total gzip-compressed size of assets
+      def calculate_gzip_size(outdir)
+        Dir.glob("#{outdir}/**/*.{js,css}").sum do |file|
+          next 0 unless File.file?(file)
+          Zlib::Deflate.deflate(File.read(file)).bytesize
+        end
+      rescue => error
+        Railpack.logger.debug "Gzip size calculation failed: #{error.message}"
+        0
       end
-    end
 
-    def generate_asset_manifest(config)
-      outdir = config['outdir']
-      return unless outdir && Dir.exist?(outdir)
-
-      # Detect asset pipeline type and delegate to appropriate manifest generator
-      pipeline_type = detect_asset_pipeline
-      manifest_class = Railpack::Manifest.const_get(pipeline_type.capitalize)
-
-      manifest_class.generate(config)
-    rescue => error
-      Railpack.logger.warn "⚠️  Failed to generate asset manifest: #{error.message}"
-    end
-
-    private
-
-    def detect_asset_pipeline
-      # Check Rails.application.config.assets class directly (more reliable)
-      if defined?(Rails) && Rails.respond_to?(:application) && Rails.application
-        assets_config = Rails.application.config.assets
-        if assets_config.is_a?(Propshaft::Assembler) || defined?(Propshaft::Assembler)
-          :propshaft
-        elsif defined?(Sprockets::Manifest)
-          :sprockets
+      # Convert bytes to human-readable format (B, KB, MB, GB)
+      def human_size(bytes)
+        units = %w[B KB MB GB]
+        size = bytes.to_f
+        units.each do |unit|
+          return "#{(size).round(2)} #{unit}" if size < 1024
+          size /= 1024
         end
       end
 
-      # Fallback to version-based detection
-      if defined?(Rails) && Rails.version.to_f >= 7.0
-        :propshaft
-      elsif defined?(Rails) && Rails.version.to_f < 7.0 && defined?(Sprockets)
-        :sprockets
-      else
-        # Safe default for modern Rails
-        :propshaft
+      def generate_asset_manifest(config)
+        outdir = config['outdir']
+        return unless outdir && Dir.exist?(outdir)
+
+        # Detect asset pipeline type and delegate to appropriate manifest generator
+        pipeline_type = detect_asset_pipeline
+        manifest_class = Railpack::Manifest.const_get(pipeline_type.capitalize)
+
+        manifest_class.generate(config)
+      rescue => error
+        # Enhanced error logging with context
+        asset_files = Dir.glob("#{outdir}/**/*.{js,css}").length rescue 0
+        Railpack.logger.warn "⚠️  Failed to generate #{pipeline_type} asset manifest for #{outdir} (#{asset_files} assets): #{error.message}"
       end
-    end
 
+      # Validate output directory exists and is writable before build
+      def validate_output_directory(config)
+        outdir = config['outdir']
+        return unless outdir
 
+        unless Dir.exist?(outdir)
+          Railpack.logger.warn "⚠️  Output directory #{outdir} does not exist - assets will be created on first build"
+          # Ensure directory exists to prevent early build failures
+          FileUtils.mkdir_p(outdir)
+        end
+      end
+
+      def detect_asset_pipeline
+        # Check Rails.application.config.assets class directly (more reliable)
+        if defined?(Rails) && Rails.respond_to?(:application) && Rails.application
+          assets_config = Rails.application.config.assets
+          if assets_config.is_a?(Propshaft::Assembler) || defined?(Propshaft::Assembler)
+            :propshaft
+          elsif defined?(Sprockets::Manifest)
+            :sprockets
+          end
+        end
+
+        # Fallback to version-based detection
+        if defined?(Rails) && Rails.version.to_f >= 7.0
+          :propshaft
+        elsif defined?(Rails) && Rails.version.to_f < 7.0 && defined?(Sprockets)
+          :sprockets
+        else
+          # Safe default for modern Rails
+          :propshaft
+        end
+      end
   end
 end

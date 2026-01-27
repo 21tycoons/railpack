@@ -43,6 +43,7 @@ default:
   sourcemap: false
   entrypoint: "./app/javascript/application.js"
   outdir: "app/assets/builds"
+  analyze_bundle: false  # Enable for gzip size reporting
 
 # Bundler-specific config
 bun:
@@ -52,9 +53,11 @@ bun:
 # Environment overrides
 development:
   sourcemap: true
+  analyze_bundle: true  # Show gzip sizes in dev
 
 production:
   minify: true
+  analyze_bundle: true  # Production bundle analysis
 ```
 
 ## Usage
@@ -110,6 +113,61 @@ Railpack.on_build_complete do |result|
   Rails.logger.info "Build completed: #{result[:success]}"
 end
 ```
+
+### Advanced Usage
+
+#### Bundle Analysis with Gzip
+
+Enable `analyze_bundle: true` to see both uncompressed and gzipped bundle sizes:
+
+```yaml
+# config/railpack.yml
+default:
+  analyze_bundle: true
+```
+
+Output example:
+```
+✅ Build completed successfully in 45.23ms (1.23 MB (0.45 MB gzipped))
+```
+
+#### Build Hooks with Payload Details
+
+Hook payloads provide detailed information about build results:
+
+```ruby
+# config/initializers/railpack.rb
+Railpack.on_build_complete do |payload|
+  if payload[:success]
+    # Success payload: { success: true, config: {...}, duration: 45.23, bundle_size: "1.23 MB" }
+    Rails.logger.info "Build succeeded in #{payload[:duration]}ms - #{payload[:bundle_size]}"
+  else
+    # Error payload: { success: false, error: #<Error>, config: {...}, duration: 12.34 }
+    Rails.logger.error "Build failed after #{payload[:duration]}ms: #{payload[:error].message}"
+  end
+end
+
+Railpack.on_build_start do |config|
+  # Config hash contains all current settings
+  Rails.logger.info "Starting #{config['bundler']} build for #{Rails.env}"
+end
+```
+
+#### Manifest Generation
+
+Railpack automatically detects your asset pipeline and generates appropriate manifests:
+
+```ruby
+# For Propshaft (Rails 7+ default)
+# Generates: app/assets/builds/.manifest.json
+Railpack::Manifest::Propshaft.generate(config)
+
+# For Sprockets (Rails < 7)
+# Generates: app/assets/builds/.sprockets-manifest-*.json
+Railpack::Manifest::Sprockets.generate(config)
+```
+
+The manifest generation is handled automatically after each build, but you can trigger it manually if needed.
 
 ## Supported Bundlers
 
