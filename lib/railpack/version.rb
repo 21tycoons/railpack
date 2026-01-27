@@ -1,3 +1,3 @@
-module Railpack
-  VERSION = "1.2.17"
+pmodule Railpack
+  VERSION = "1.3.0"
 end

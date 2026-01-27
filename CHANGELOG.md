@@ -1,5 +1,44 @@
 # Changelog
 
+## [1.3.0] - 2026-01-26
+
+### 🚀 **Major Architecture Refactoring**
+
+This release includes comprehensive refactoring of Railpack's two core classes, representing a significant architectural improvement while maintaining full backward compatibility.
+
+#### ✨ **Config Class Overhaul (Railpack::Config)**
+- **Security Hardening**: Implemented YAML safe loading with `permitted_classes: [], aliases: false`
+- **Deep Immutability**: All configurations are now deep-frozen to prevent runtime mutations
+- **Production Validation**: Critical settings validation in production environment
+- **Developer Experience**: Explicit accessor methods, comprehensive documentation, deprecation warnings
+- **Performance**: Cached configurations per environment, thread-safe access
+
+#### 🏗️ **Manager Class Refactoring (Railpack::Manager)**
+- **Manifest Extraction**: Created dedicated `Railpack::Manifest::Propshaft` and `::Sprockets` classes
+- **Improved Pipeline Detection**: Direct `Rails.application.config.assets` class inspection
+- **Enhanced Bundle Analysis**: Optional gzip size reporting for realistic metrics
+- **Better Error Context**: Rich manifest generation error messages with pipeline type and asset counts
+- **Pre-build Validation**: Output directory existence warnings before build starts
+
+#### 📊 **Architecture Improvements**
+- **Separation of Concerns**: Manifest generation isolated from orchestration logic
+- **Testability**: Core logic now independently testable with 75 tests passing
+- **Maintainability**: Smaller, focused classes with single responsibilities
+- **Extensibility**: Easy to add new asset pipelines and manifest formats
+- **Documentation**: Comprehensive class and method documentation throughout
+
+#### 🔧 **Technical Enhancements**
+- **Bundle Size Reporting**: Human-readable units (B, KB, MB, GB) with optional gzip analysis
+- **Error Handling**: Enhanced error logging with contextual information
+- **Hook System**: Improved build lifecycle hooks with detailed payload documentation
+- **Validation**: Pre-build checks and comprehensive input validation
+
+#### 📚 **Migration Notes**
+- All changes are backward compatible - no breaking changes
+- Existing configurations and APIs continue to work unchanged
+- New features are opt-in (like gzip analysis via `analyze_bundle: true`)
+- Enhanced error messages provide better debugging information
+
 ## [1.2.17] - 2026-01-26
 
 ### ✨ **Manager Class Final Polish - Production Perfection**
