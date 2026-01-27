@@ -225,7 +225,12 @@ module Railpack
       # Validate bundler name exists in known bundlers
       bundler_name = config['bundler']
       if bundler_name && !@config.key?(bundler_name)
-        warn "Warning: Unknown bundler '#{bundler_name}'. Known bundlers: #{@config.keys.grep(/^(bun|esbuild|rollup|webpack)$/).join(', ')}"
+        message = "Unknown bundler '#{bundler_name}'. Known bundlers: #{@config.keys.grep(/^(bun|esbuild|rollup|webpack)$/).join(', ')}"
+        if ENV['RAILPACK_STRICT']
+          raise Error, message
+        else
+          Railpack.logger.warn(message)
+        end
       end
     end
 
