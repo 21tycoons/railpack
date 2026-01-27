@@ -1,6 +1,24 @@
 require "yaml"
 
 module Railpack
+  # Configuration handler for Railpack bundling settings.
+  #
+  # This class provides immutable, environment-aware configuration management with:
+  # - YAML-based config loading from config/railpack.yml
+  # - Three-level merge order: defaults → bundler-specific → environment-specific
+  # - Deep-frozen configs for immutability and thread safety
+  # - Explicit accessors for common config keys with method_missing fallback
+  #
+  # Example config/railpack.yml:
+  #   default:
+  #     bundler: bun
+  #     outdir: app/assets/builds
+  #   development:
+  #     sourcemap: true
+  #   production:
+  #     minify: true
+  #
+  # All configs are immutable after loading. Set values in config/railpack.yml only.
   class Config
     class Error < StandardError; end
 
@@ -41,9 +59,19 @@ module Railpack
         # Merge: default <- bundler <- environment
         merged = deep_merge(deep_merge(base_config, bundler_config), env_config)
 
+        # Validate critical config values
+        validate_config!(merged, env)
+
         # Deep freeze for immutability
         deep_freeze(merged)
       end
+    end
+
+    # Reload configuration (useful for development/testing)
+    def reload!
+      @config = load_config
+      @merged_cache.clear
+      self
     end
 
     def bundler(env = current_env)
@@ -176,6 +204,26 @@ module Railpack
         else
           new_val
         end
+      end
+    end
+
+    def validate_config!(config, env)
+      # Validate critical config values in production
+      if env.to_s == 'production'
+        if config['outdir'].nil? || config['outdir'].to_s.empty?
+          raise Error, "Production config must specify 'outdir'"
+        end
+
+        bundler_name = config['bundler']
+        if bundler_name.nil? || bundler_name.to_s.empty?
+          raise Error, "Production config must specify 'bundler'"
+        end
+      end
+
+      # Validate bundler name exists in known bundlers
+      bundler_name = config['bundler']
+      if bundler_name && !@config.key?(bundler_name)
+        warn "Warning: Unknown bundler '#{bundler_name}'. Known bundlers: #{@config.keys.grep(/^(bun|esbuild|rollup|webpack)$/).join(', ')}"
       end
     end
 
