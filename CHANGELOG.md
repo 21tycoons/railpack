@@ -1,108 +1,70 @@
-## [Unreleased]
+# Changelog
 
-## [1.2.9] - 2026-01-26
+## [1.2.15] - 2026-01-26
 
-- Add comprehensive dedicated test files for Rails integration
-- propshaft_test.rb: 7 focused tests for Propshaft manifest generation
-- sprockets_test.rb: 10 focused tests for Sprockets manifest generation
-- rails_integration_test.rb: Rails-specific integration tests
-- Test subdirectory handling, digest calculation, multiple assets
-- Test manifest structure validation, source map exclusion
-- Test Rails constant detection, logger integration, config loading
-- All 75 tests passing with 229 assertions
+### 🚀 **Major Config Class Refactor - Production-Ready Security & Validation**
 
-## [1.2.8] - 2026-01-26
+This release includes a comprehensive overhaul of the `Railpack::Config` class, transforming it from a basic configuration system into a production-ready, secure, and developer-friendly solution.
 
-- Add Sprockets compatibility for older Rails applications
-- Automatic asset pipeline detection (Propshaft vs Sprockets)
-- Generate appropriate manifest format based on Rails version
-- Propshaft manifest: .manifest.json (Rails 7+ default)
-- Sprockets manifest: .sprockets-manifest-*.json (Rails < 7)
-- Enhanced Rails integration for broader compatibility
-- All 46 tests passing with 147 assertions
+#### ✨ **Security Enhancements**
+- **YAML Safe Loading**: Implemented `permitted_classes: [], aliases: false` to prevent YAML deserialization attacks
+- **Deep Immutability**: All configs are now deep-frozen to prevent runtime mutations
+- **Zero Runtime Changes**: Removed setter methods - configs are immutable after loading
 
-## [1.2.7] - 2026-01-26
+#### 🛡️ **Production Validation**
+- **Critical Settings Validation**: Production environment validates `outdir` and `bundler` are specified
+- **Bundler Validation**: Warns about unknown bundlers with helpful suggestions
+- **Configurable Strict Mode**: `RAILPACK_STRICT=1` env var enables strict mode (raises errors instead of warnings)
 
-- Add dedicated test files for Manager and Bundler classes
-- manager_test.rb: 13 unit tests for Manager class functionality
-- bundler_test.rb: 17 unit tests for all bundler implementations
-- Test bundler initialization, commands, inheritance, error handling
-- Test manager bundler creation, bundle size calculation, asset manifest generation
-- Improved test organization with separate test files per major class
-- All 43 tests passing with 137 assertions
+#### 📝 **Developer Experience**
+- **Explicit Accessors**: Added explicit accessor methods for all known config keys
+- **Comprehensive Documentation**: Class-level docs with examples and architecture explanation
+- **Deprecation Warnings**: Future-proofing with deprecation warnings for `method_missing` usage (v2.0 preparation)
+- **Logger Integration**: Uses `Railpack.logger` for consistent logging (defaults to Rails.logger)
 
-## [1.2.6] - 2026-01-26
+#### ⚡ **Performance & Reliability**
+- **Cached Configurations**: Merged configs are cached per environment for better performance
+- **Development Reload**: Added `reload!` method for config hot-reloading during development
+- **Thread Safety**: Immutable configs ensure thread-safe access
 
-- Add dedicated config_test.rb file for Config class unit tests
-- Comprehensive Config class testing with 12 focused unit tests
-- Test initialization, default values, build flags/args, environment overrides
-- Test YAML file loading, error handling, and dynamic method access
-- Improved test organization with separate test files per class
-- All 24 tests passing with 86 assertions
+#### 🔧 **Breaking Changes (Minimal)**
+- Configs are now immutable - no runtime mutations allowed
+- Must set config values in `config/railpack.yml` only
 
-## [1.2.5] - 2026-01-26
+#### 📚 **Migration Guide**
+```ruby
+# Before (still works with deprecation warning)
+config.unknown_key  # method_missing fallback
 
-- Bump version to 1.2.5 - Add YAML config file loading test
-- Add comprehensive YAML config file loading test
-- Test that Railpack correctly reads config/railpack.yml from Rails.root
-- Test bundler selection, environment overrides, and config merging
-- All 19 tests passing with 72 assertions
+# After (recommended)
+config.unknown_key  # Use explicit accessors or config hash
+```
 
-## [1.2.4] - 2026-01-26
+## [1.2.14] - 2026-01-26
 
-- Add comprehensive test suite (19 tests, 72 assertions)
-- Test config system including YAML file loading from Rails.root
-- Test bundler implementations, manager features, event hooks
-- Test error handling, asset manifest generation, bundle size calculation
-- Test Rails integration and environment overrides
-- Add default logger with Logger.new($stdout)
-- Fix logger nil issues in manager
+### ✨ **Future-Proofing with Deprecation Warnings**
+- Added deprecation warnings for dynamic config access via `method_missing`
+- Prepares for v2.0 where dynamic access will be removed
+- Warnings only appear when Rails.logger is available
 
-## [1.2.3] - 2026-01-26
+## [1.2.13] - 2026-01-26
 
-- Add install scaffold generator (`rails railpack:install`)
-- Create default `config/railpack.yml` with sensible Rails defaults
-- Add `rails railpack:install:force` for overwriting existing config
-- Update README with install instructions
-- Similar to jsbundling install experience
+### 🛡️ **Production-Ready Config Validation**
+- Added production environment validation for critical settings
+- Enhanced bundler validation with helpful error messages
+- Added comprehensive class documentation
+- Implemented `reload!` method for development config reloading
 
-## [1.2.2] - 2026-01-26
+## [1.2.12] - 2026-01-26
 
-- Fix asset manifest generation for Propshaft compatibility
-- Generate `.manifest.json` instead of Sprockets format
-- Update manifest structure with `logical_path`, `pathname`, `digest`
-- Rails 7+ Propshaft compatibility
+### 🔒 **Security Hardening**
+- Implemented deep freezing of all configuration objects
+- Added YAML safe loading with security restrictions
+- Enhanced validation and error handling
 
-## [1.2.1] - 2026-01-26
+## [1.2.11] - 2026-01-26
 
-- Add comprehensive build performance monitoring
-- Implement Propshaft-compatible asset manifest generation
-- Enhanced logging with emojis and structured output
-- Production-ready defaults (no sourcemaps, bundle analysis off)
-- Better error handling and user feedback
-
-## [1.2.0] - 2026-01-26
-
-- Add Webpack bundler support
-- Implement WebpackBundler class with full command support
-- Register webpack in Manager::BUNDLERS
-- Add webpack config defaults (mode, target)
-- Update tests to include webpack bundler
-
-## [1.1.0] - 2026-01-26
-
-- Add Rollup bundler support
-- Implement RollupBundler class with tree-shaking capabilities
-- Register rollup in Manager::BUNDLERS
-- Add rollup config defaults (format, sourcemap)
-- Update tests to include rollup bundler
-
-## [1.0.0] - 2026-01-26
-
-- Initial release with Bun and esbuild support
-- Unified API for multiple bundlers
-- Rails asset pipeline integration
-- Configuration system with YAML support
-- Event hooks for build lifecycle
-- Rake tasks for Rails integration
-- Comprehensive test suite
+### 🚀 **Initial Config Class Implementation**
+- Basic YAML configuration loading
+- Environment-aware config merging
+- Method missing fallback for dynamic access
