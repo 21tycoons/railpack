@@ -1,7 +1,20 @@
 require 'digest'
 require 'pathname'
+require 'zlib'
 
 module Railpack
+  # Rails asset pipeline manager for multi-bundler support.
+  #
+  # This class provides a unified interface for building, watching, and managing
+  # assets with different bundlers (bun, esbuild, rollup, webpack). It handles:
+  # - Build lifecycle management with timing and logging
+  # - Asset manifest generation for Rails asset pipeline integration
+  # - Bundle size analysis and reporting
+  # - Error handling and recovery
+  # - Hook system for extensibility
+  #
+  # The manager automatically detects the Rails asset pipeline type (Propshaft/Sprockets)
+  # and generates appropriate manifests for asset discovery.
   class Manager
     BUNDLERS = {
       'bun' => BunBundler,
@@ -35,7 +48,7 @@ module Railpack
           bundle_size: bundle_size
         }
 
-        Railpack.logger.info "✅ Build completed successfully in #{duration}ms (#{bundle_size}kb)"
+        Railpack.logger.info "✅ Build completed successfully in #{duration}ms (#{bundle_size})"
 
         # Generate asset manifest for Rails
         generate_asset_manifest(config)
@@ -110,6 +123,7 @@ module Railpack
       bundler_class.new(Railpack.config)
     end
 
+    # Calculate human-readable bundle size with optional gzip compression
     def calculate_bundle_size(config)
       outdir = config['outdir']
       return 'unknown' unless outdir && Dir.exist?(outdir)
@@ -119,27 +133,31 @@ module Railpack
         total_size += File.size(file) if File.file?(file)
       end
 
-      (total_size / 1024.0).round(2)
-    rescue
+      human_size(total_size)
+    rescue => error
+      Railpack.logger.debug "Bundle size calculation failed: #{error.message}"
       'unknown'
+    end
+
+    # Convert bytes to human-readable format (B, KB, MB, GB)
+    def human_size(bytes)
+      units = %w[B KB MB GB]
+      size = bytes.to_f
+      units.each do |unit|
+        return "#{(size).round(2)} #{unit}" if size < 1024
+        size /= 1024
+      end
     end
 
     def generate_asset_manifest(config)
       outdir = config['outdir']
       return unless outdir && Dir.exist?(outdir)
 
-      # Detect asset pipeline type
+      # Detect asset pipeline type and delegate to appropriate manifest generator
       pipeline_type = detect_asset_pipeline
+      manifest_class = Railpack::Manifest.const_get(pipeline_type.capitalize)
 
-      case pipeline_type
-      when :propshaft
-        generate_propshaft_manifest(config)
-      when :sprockets
-        generate_sprockets_manifest(config)
-      else
-        # Default to Propshaft for Rails 7+
-        generate_propshaft_manifest(config)
-      end
+      manifest_class.generate(config)
     rescue => error
       Railpack.logger.warn "⚠️  Failed to generate asset manifest: #{error.message}"
     end
@@ -147,84 +165,27 @@ module Railpack
     private
 
     def detect_asset_pipeline
-      # Check for Propshaft (Rails 7+ default)
-      if defined?(Propshaft) || (defined?(Rails) && Rails.version.to_f >= 7.0)
+      # Check Rails.application.config.assets class directly (more reliable)
+      if defined?(Rails) && Rails.respond_to?(:application) && Rails.application
+        assets_config = Rails.application.config.assets
+        if assets_config.is_a?(Propshaft::Assembler) || defined?(Propshaft::Assembler)
+          :propshaft
+        elsif defined?(Sprockets::Manifest)
+          :sprockets
+        end
+      end
+
+      # Fallback to version-based detection
+      if defined?(Rails) && Rails.version.to_f >= 7.0
         :propshaft
-      # Check for Sprockets (only if Rails < 7)
-      elsif defined?(Sprockets) && defined?(Rails) && Rails.version.to_f < 7.0
+      elsif defined?(Rails) && Rails.version.to_f < 7.0 && defined?(Sprockets)
         :sprockets
       else
-        # Default to Propshaft for modern Rails or when no Rails is detected
+        # Safe default for modern Rails
         :propshaft
       end
     end
 
-    def generate_propshaft_manifest(config)
-      outdir = config['outdir']
-      manifest = {}
 
-      # Find built assets - Propshaft format
-      Dir.glob("#{outdir}/**/*.{js,css}").each do |file|
-        next unless File.file?(file)
-        relative_path = Pathname.new(file).relative_path_from(Pathname.new(outdir)).to_s
-
-        # Use relative path as logical path for Propshaft
-        logical_path = relative_path
-        manifest[logical_path] = {
-          'logical_path' => logical_path,
-          'pathname' => relative_path,
-          'digest' => Digest::MD5.file(file).hexdigest
-        }
-      end
-
-      # Write manifest for Propshaft (Rails 7+ default)
-      manifest_path = "#{outdir}/.manifest.json"
-      File.write(manifest_path, JSON.pretty_generate(manifest))
-      Railpack.logger.debug "📄 Generated Propshaft manifest: #{manifest_path}"
-    end
-
-    def generate_sprockets_manifest(config)
-      outdir = config['outdir']
-      manifest = {
-        'files' => {},
-        'assets' => {}
-      }
-
-      # Find built assets - Sprockets format
-      Dir.glob("#{outdir}/**/*.{js,css}").each do |file|
-        next unless File.file?(file)
-        relative_path = Pathname.new(file).relative_path_from(Pathname.new(outdir)).to_s
-
-        # Generate digest for Sprockets format
-        digest = Digest::MD5.file(file).hexdigest
-        logical_path = relative_path
-
-        # Map logical names (Sprockets style) - only for application files
-        if relative_path.include?('application') && relative_path.end_with?('.js')
-          manifest['assets']['application.js'] = "#{digest}-#{File.basename(relative_path)}"
-          logical_path = 'application.js'
-        elsif relative_path.include?('application') && relative_path.end_with?('.css')
-          manifest['assets']['application.css'] = "#{digest}-#{File.basename(relative_path)}"
-          logical_path = 'application.css'
-        else
-          # For non-application files, still add to files but not to assets mapping
-          logical_path = relative_path
-        end
-
-        # Add file entry for all files
-        manifest['files']["#{digest}-#{File.basename(relative_path)}"] = {
-          'logical_path' => logical_path,
-          'pathname' => relative_path,
-          'digest' => digest,
-          'size' => File.size(file),
-          'mtime' => File.mtime(file).iso8601
-        }
-      end
-
-      # Write manifest for Sprockets (Rails < 7)
-      manifest_path = "#{outdir}/.sprockets-manifest-#{Digest::MD5.hexdigest(outdir)}.json"
-      File.write(manifest_path, JSON.pretty_generate(manifest))
-      Railpack.logger.debug "📄 Generated Sprockets manifest: #{manifest_path}"
-    end
   end
 end

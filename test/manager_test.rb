@@ -54,8 +54,8 @@ class ManagerTest < Minitest::Test
     manager = Railpack::Manager.new
 
     size = manager.send(:calculate_bundle_size, config)
-    assert size.is_a?(Float)
-    assert size > 0
+    assert size.is_a?(String)
+    assert_match /\d+\.\d+ \w+/, size
   end
 
   def test_manager_bundle_size_calculation_empty_directory
@@ -67,7 +67,7 @@ class ManagerTest < Minitest::Test
     manager = Railpack::Manager.new
 
     size = manager.send(:calculate_bundle_size, config)
-    assert_equal 0.0, size
+    assert_equal "0.0 B", size
   end
 
   def test_manager_bundle_size_calculation_nonexistent_directory
@@ -232,7 +232,12 @@ class ManagerTest < Minitest::Test
     config = { 'outdir' => outdir }
     manager = Railpack::Manager.new
 
-    manager.send(:generate_sprockets_manifest, config)
+    # Force Sprockets detection for this test
+    def manager.detect_asset_pipeline
+      :sprockets
+    end
+
+    manager.send(:generate_asset_manifest, config)
 
     manifest_path = Dir.glob("#{outdir}/.sprockets-manifest-*.json").first
     assert manifest_path
