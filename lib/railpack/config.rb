@@ -93,6 +93,8 @@ module Railpack
         raise Error, "Config is immutable. Set values in config/railpack.yml"
       else
         # Getter - read from merged config (backward compatibility)
+        # TODO: In v2.0, remove this fallback and require explicit accessors
+        warn "DEPRECATED: Dynamic config access via '#{config_key}' will be removed in v2.0. Use explicit accessors instead." if defined?(Rails) && Rails.logger
         env = args.first || current_env
         return for_environment(env)[config_key] if for_environment(env).key?(config_key)
         super
