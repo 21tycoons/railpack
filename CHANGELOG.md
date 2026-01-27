@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2] - 2026-01-26
+
+This patch release includes the final dependency fix.
+
+### Changes
+
+- **Dependencies**: Added missing `require 'fileutils'` for proper FileUtils usage
+
 ## [1.3.1] - 2026-01-26
 
 This patch release includes final polish and documentation improvements.

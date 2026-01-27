@@ -1,4 +1,5 @@
 require 'digest'
+require 'fileutils'
 require 'pathname'
 require 'zlib'
 
