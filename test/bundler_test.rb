@@ -24,8 +24,9 @@ class BundlerTest < Minitest::Test
     bundler = Railpack::BunBundler.new({})
     commands = bundler.send(:commands)
 
-    assert_equal 'bun run build', commands[:build]
-    assert_equal 'bun run watch', commands[:watch]
+    # Without package.json scripts, falls back to direct bun commands
+    assert_equal 'bun build', commands[:build]
+    assert_equal 'bun build --watch', commands[:watch]
     assert_equal 'bun install', commands[:install]
   end
 
@@ -55,7 +56,7 @@ class BundlerTest < Minitest::Test
     commands = bundler.send(:commands)
 
     assert_equal 'rollup', commands[:build]
-    assert_equal 'rollup --watch', commands[:watch]
+    assert_equal 'rollup', commands[:watch]
     assert_equal 'npm install', commands[:install]
   end
 
@@ -70,7 +71,7 @@ class BundlerTest < Minitest::Test
     commands = bundler.send(:commands)
 
     assert_equal 'webpack', commands[:build]
-    assert_equal 'webpack --watch', commands[:watch]
+    assert_equal 'webpack', commands[:watch]
     assert_equal 'npm install', commands[:install]
   end
 

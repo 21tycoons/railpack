@@ -5,9 +5,12 @@ module Railpack
     end
 
     def default_commands
+      has_build_script = package_json_has_script?('build')
+      has_watch_script = package_json_has_script?('watch')
+
       {
-        build: "#{base_command} run build",
-        watch: "#{base_command} run watch",
+        build: has_build_script ? "#{base_command} run build" : "#{base_command} build",
+        watch: has_watch_script ? "#{base_command} run watch" : "#{base_command} build --watch",
         install: "#{base_command} install",
         add: "#{base_command} add",
         remove: "#{base_command} remove",
@@ -49,5 +52,19 @@ module Railpack
       full_args = build_command_args(:watch, args)
       execute([commands[:watch], *full_args])
     end
+
+    private
+
+      def package_json_has_script?(script_name)
+        return false unless File.exist?('package.json')
+
+        begin
+          package_json = JSON.parse(File.read('package.json'))
+          scripts = package_json['scripts'] || {}
+          scripts.key?(script_name)
+        rescue JSON::ParserError
+          false
+        end
+      end
   end
 end

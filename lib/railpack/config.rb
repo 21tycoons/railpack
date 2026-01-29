@@ -201,11 +201,13 @@ module Railpack
           },
           "rollup" => {
             "format" => "esm",
-            "sourcemap" => true
+            "sourcemap" => true,
+            "watch_flags" => ["--watch"]
           },
           "webpack" => {
             "mode" => "production",
-            "target" => "web"
+            "target" => "web",
+            "watch_flags" => ["--watch"]
           },
           "development" => {
             "sourcemap" => true

@@ -7,7 +7,7 @@ module Railpack
     def default_commands
       {
         build: base_command,
-        watch: "#{base_command} --watch",
+        watch: base_command,
         install: "#{package_manager} install",
         version: "#{base_command} --version"
       }
@@ -20,7 +20,7 @@ module Railpack
 
     def watch(args = [])
       full_args = build_command_args(:watch, args)
-      execute([base_command, "--watch", *full_args])
+      execute([base_command, *full_args])
     end
   end
 end
