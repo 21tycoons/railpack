@@ -4,7 +4,7 @@ module Railpack
       "webpack"
     end
 
-    def commands
+    def default_commands
       {
         build: base_command,
         watch: "#{base_command} --watch",

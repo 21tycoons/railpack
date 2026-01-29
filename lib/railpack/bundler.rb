@@ -48,7 +48,24 @@ module Railpack
     end
 
     def commands
-      raise NotImplementedError, "#{self.class.name} must implement #commands"
+      @commands ||= begin
+        defaults = default_commands
+        overrides = bundler_command_overrides
+        defaults.merge(overrides)
+      end
+    end
+
+    def default_commands
+      raise NotImplementedError, "#{self.class.name} must implement #default_commands"
+    end
+
+    private
+
+    def bundler_command_overrides
+      return {} unless config.respond_to?(:bundler_command_overrides)
+      config.bundler_command_overrides(current_env) || {}
+    rescue
+      {}
     end
 
     protected
@@ -65,13 +82,24 @@ module Railpack
 
     # Build full command args by merging config flags/args with passed args
     def build_command_args(operation, args = [])
+      env = current_env
       if config.respond_to?("#{operation}_args")
-        config_args = config.send("#{operation}_args") || []
-        config_flags = config.send("#{operation}_flags") || []
+        config_args = config.send("#{operation}_args", env) || []
+        config_flags = config.send("#{operation}_flags", env) || []
         config_args + config_flags + args
       else
         # Fallback for hash configs (used in tests)
         args
+      end
+    end
+
+    private
+
+    def current_env
+      if defined?(Rails) && Rails.respond_to?(:env)
+        Rails.env
+      else
+        :development
       end
     end
   end

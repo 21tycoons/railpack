@@ -4,7 +4,7 @@ module Railpack
       "bun"
     end
 
-    def commands
+    def default_commands
       {
         build: "#{base_command} run build",
         watch: "#{base_command} run watch",

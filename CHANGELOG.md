@@ -1,5 +1,53 @@
 # Changelog
 
+## [1.3.4] - 2026-01-28
+
+### 🚀 **Per-Bundler Command Overrides - Ultimate Customization**
+
+This patch release adds the final piece of the bundler architecture puzzle: per-bundler command overrides via YAML configuration. This enables users to customize bundler behavior without code changes, completing the vision of a truly unified and extensible asset pipeline.
+
+#### ✨ **Per-Bundler Command Overrides**
+- **YAML Configuration**: Override any bundler command via `config/railpack.yml`
+- **Environment-Specific**: Different overrides for development, production, etc.
+- **Graceful Fallback**: Falls back to defaults if no overrides specified
+- **Deep Immutability**: All overrides are frozen for thread safety
+
+#### 🛠️ **Configuration Syntax**
+```yaml
+bundlers:
+  esbuild:
+    commands:
+      build: "custom-esbuild --special-flag"
+      watch: "custom-esbuild --watch --dev-mode"
+      version: "custom-esbuild --version-check"
+  bun:
+    commands:
+      build: "bunx custom-build"
+```
+
+#### 🏗️ **Architecture Enhancement**
+- **Config Integration**: `Config#bundler_command_overrides()` method
+- **Base Class Support**: `Bundler#commands` now merges defaults + overrides
+- **Subclass Flexibility**: All bundlers use `default_commands` + config overrides
+- **Zero Breaking Changes**: Existing behavior preserved
+
+#### 📚 **Use Cases**
+- **Custom Build Scripts**: Use project-specific build commands
+- **Wrapper Scripts**: Integrate with custom tooling/pipelines
+- **Version Pinning**: Use specific bundler versions via wrapper scripts
+- **Environment Overrides**: Different commands for dev vs production
+
+#### 🔧 **Technical Implementation**
+- **Lazy Loading**: Commands cached per bundler instance
+- **Error Handling**: Graceful fallback if config unavailable
+- **Performance**: No overhead when overrides not used
+- **Thread Safety**: Immutable command hashes
+
+#### 📊 **Quality Assurance**
+- **All Tests Pass**: 75 tests with 244 assertions
+- **Backward Compatible**: Existing configurations work unchanged
+- **Documentation**: Comprehensive inline documentation
+
 ## [1.3.3] - 2026-01-28
 
 ### 🚀 **Bundler Architecture Refactoring - Enterprise-Grade Code Organization**

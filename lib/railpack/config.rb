@@ -86,6 +86,14 @@ module Railpack
       @config[bundler_name] || {}
     end
 
+    # Get bundler-specific command overrides from config
+    def bundler_command_overrides(env = current_env)
+      bundler_name = bundler(env)
+      overrides = @config.dig('bundlers', bundler_name, 'commands') || {}
+      # Deep freeze for immutability
+      deep_freeze(overrides)
+    end
+
     def method_missing(method, *args)
       config_key = method.to_s
       if method.end_with?('=')
