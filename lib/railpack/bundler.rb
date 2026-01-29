@@ -1,4 +1,5 @@
 require 'shellwords'
+require 'open3'
 
 module Railpack
   class Bundler
@@ -87,20 +88,31 @@ module Railpack
     end
 
     def execute!(command_array)
-      success = system(*command_array)
-      unless success
-        exit_status = $?.exitstatus
-        term_signal = $?.termsig
+      stdout, stderr, status = Open3.capture3(*command_array)
+
+      unless status.success?
         command_string = Shellwords.join(command_array)
 
         error_msg = "Command failed"
-        error_msg += " (exit status: #{exit_status})" if exit_status
-        error_msg += " (terminated by signal: #{term_signal})" if term_signal
+        error_msg += " (exit status: #{status.exitstatus})" if status.exitstatus
+        error_msg += " (terminated by signal: #{status.termsig})" if status.termsig
         error_msg += ": #{command_string}"
+
+        # Include stderr output for debugging (truncate if too long)
+        if stderr && !stderr.empty?
+          stderr_lines = stderr.split("\n")
+          if stderr_lines.size > 10
+            stderr_preview = stderr_lines.first(5).join("\n") + "\n... (#{stderr_lines.size - 5} more lines)"
+          else
+            stderr_preview = stderr
+          end
+          error_msg += "\n\nSTDERR:\n#{stderr_preview}"
+        end
 
         raise Error, error_msg
       end
-      success
+
+      status.success?
     end
 
     # Build full command args by merging config flags/args with passed args
