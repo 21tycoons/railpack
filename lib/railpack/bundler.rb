@@ -65,9 +65,19 @@ module Railpack
 
     def bundler_command_overrides
       return {} unless config.respond_to?(:bundler_command_overrides)
-      config.bundler_command_overrides(current_env) || {}
-    rescue
-      {}
+
+      begin
+        config.bundler_command_overrides(current_env) || {}
+      rescue NoMethodError, KeyError, TypeError, ArgumentError => e
+        # Log warning for legitimate config issues, but don't crash
+        if defined?(Rails) && Rails.logger
+          Rails.logger.warn "Railpack: Invalid bundler_command_overrides config (#{e.class}: #{e.message}) - using defaults"
+        end
+        {}
+      rescue => e
+        # Re-raise unexpected errors (don't hide bugs)
+        raise e
+      end
     end
 
     protected
