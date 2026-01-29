@@ -15,6 +15,14 @@ class Railpack::InstallGenerator < Rails::Generators::Base
     rake "railpack:install"  # Safe—runs the new Rake task
   end
 
+  def setup_procfile_dev
+    procfile_path = Rails.root.join("Procfile.dev")
+    unless File.exist?(procfile_path) && File.read(procfile_path).include?("railpack:watch")
+      append_to_file procfile_path, "js: bin/rails railpack:watch\n"
+      say "Added js: bin/rails railpack:watch to Procfile.dev for live reload", :green
+    end
+  end
+
   def post_install_message
     say <<~MSG, :green
 
@@ -27,6 +35,7 @@ class Railpack::InstallGenerator < Rails::Generators::Base
 
       Switch bundler anytime in config/railpack.yml—no reinstall needed!
       Assets auto-build on deploy (hooked into assets:precompile).
+      Live reload ready with bin/dev (Procfile.dev configured).
 
       Enjoy the flexibility! 🚀
     MSG
