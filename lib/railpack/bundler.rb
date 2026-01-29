@@ -9,7 +9,6 @@ module Railpack
       @config = config
     end
 
-    # Common interface all bundlers must implement
     def build!(args = [])
       raise NotImplementedError, "#{self.class.name} must implement #build!"
     end
@@ -64,79 +63,77 @@ module Railpack
 
     private
 
-    def bundler_command_overrides
-      return {} unless config.respond_to?(:bundler_command_overrides)
+      def bundler_command_overrides
+        return {} unless config.respond_to?(:bundler_command_overrides)
 
-      begin
-        config.bundler_command_overrides(current_env) || {}
-      rescue NoMethodError, KeyError, TypeError, ArgumentError => e
-        # Log warning for legitimate config issues, but don't crash
-        if defined?(Rails) && Rails.logger
-          Rails.logger.warn "Railpack: Invalid bundler_command_overrides config (#{e.class}: #{e.message}) - using defaults"
+        begin
+          config.bundler_command_overrides(current_env) || {}
+        rescue NoMethodError, KeyError, TypeError, ArgumentError => e
+          # Log warning for legitimate config issues, but don't crash
+          if defined?(Rails) && Rails.logger
+            Rails.logger.warn "Railpack: Invalid bundler_command_overrides config (#{e.class}: #{e.message}) - using defaults"
+          end
+          {}
+        rescue => e
+          # Re-raise unexpected errors (don't hide bugs)
+          raise e
         end
-        {}
-      rescue => e
-        # Re-raise unexpected errors (don't hide bugs)
-        raise e
       end
-    end
+
+      def current_env
+        if defined?(Rails) && Rails.respond_to?(:env)
+          Rails.env
+        else
+          :development
+        end
+      end
 
     protected
 
-    def execute(command_array)
-      system(*command_array)
-    end
+      def execute(command_array)
+        system(*command_array)
+      end
 
-    def execute!(command_array)
-      stdout, stderr, status = Open3.capture3(*command_array)
+      def execute!(command_array)
+        stdout, stderr, status = Open3.capture3(*command_array)
 
-      unless status.success?
-        command_string = Shellwords.join(command_array)
+        unless status.success?
+          command_string = Shellwords.join(command_array)
 
-        error_msg = "Command failed"
-        error_msg += " (exit status: #{status.exitstatus})" if status.exitstatus
-        error_msg += " (terminated by signal: #{status.termsig})" if status.termsig
-        error_msg += ": #{command_string}"
+          error_msg = "Command failed"
+          error_msg += " (exit status: #{status.exitstatus})" if status.exitstatus
+          error_msg += " (terminated by signal: #{status.termsig})" if status.termsig
+          error_msg += ": #{command_string}"
 
-        # Include stderr output for debugging (truncate if too long)
-        if stderr && !stderr.empty?
-          stderr_lines = stderr.split("\n")
-          if stderr_lines.size > 10
-            stderr_preview = stderr_lines.first(5).join("\n") + "\n... (#{stderr_lines.size - 5} more lines)"
-          else
-            stderr_preview = stderr
+          # Include stderr output for debugging (truncate if too long)
+          if stderr && !stderr.empty?
+            stderr_lines = stderr.split("\n")
+            if stderr_lines.size > 10
+              stderr_preview = stderr_lines.first(5).join("\n") + "\n... (#{stderr_lines.size - 5} more lines)"
+            else
+              stderr_preview = stderr
+            end
+            error_msg += "\n\nSTDERR:\n#{stderr_preview}"
           end
-          error_msg += "\n\nSTDERR:\n#{stderr_preview}"
+
+          raise Error, error_msg
         end
 
-        raise Error, error_msg
+        status.success?
       end
 
-      status.success?
-    end
-
-    # Build full command args by merging config flags/args with passed args
-    def build_command_args(operation, args = [])
-      env = current_env
-      if config.respond_to?("#{operation}_args")
-        config_args = config.send("#{operation}_args", env) || []
-        config_flags = config.send("#{operation}_flags", env) || []
-        config_args + config_flags + args
-      else
-        # Fallback for hash configs (used in tests)
-        args
+      # Build full command args by merging config flags/args with passed args
+      def build_command_args(operation, args = [])
+        env = current_env
+        if config.respond_to?("#{operation}_args")
+          config_args = config.send("#{operation}_args", env) || []
+          config_flags = config.send("#{operation}_flags", env) || []
+          config_args + config_flags + args
+        else
+          # Fallback for hash configs (used in tests)
+          args
+        end
       end
-    end
-
-    private
-
-    def current_env
-      if defined?(Rails) && Rails.respond_to?(:env)
-        Rails.env
-      else
-        :development
-      end
-    end
   end
 
   # Intermediate base class for NPM-based bundlers (esbuild, rollup, webpack)
