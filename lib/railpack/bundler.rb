@@ -1,3 +1,5 @@
+require 'shellwords'
+
 module Railpack
   class Bundler
     attr_reader :config
@@ -76,7 +78,18 @@ module Railpack
 
     def execute!(command_array)
       success = system(*command_array)
-      raise Error, "Command failed: #{command_array.join(' ')}" unless success
+      unless success
+        exit_status = $?.exitstatus
+        term_signal = $?.termsig
+        command_string = Shellwords.join(command_array)
+
+        error_msg = "Command failed"
+        error_msg += " (exit status: #{exit_status})" if exit_status
+        error_msg += " (terminated by signal: #{term_signal})" if term_signal
+        error_msg += ": #{command_string}"
+
+        raise Error, error_msg
+      end
       success
     end
 
