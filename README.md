@@ -76,6 +76,12 @@ bundlers:
   bun:
     commands:
       build: "bunx custom-build"
+  rollup:
+    commands:
+      build: "rollup --config custom-config.js"
+  webpack:
+    commands:
+      build: "webpack --config custom-webpack.config.js"
 ```
 
 #### Watch Flags Configuration
@@ -87,6 +93,53 @@ esbuild:
   target: browser
   format: esm
   watch_flags: ["--watch", "--serve=3000"]  # Custom watch flags
+
+rollup:
+  format: esm
+  sourcemap: true
+  watch_flags: ["--watch"]
+
+webpack:
+  mode: production
+  target: web
+  watch_flags: ["--watch"]
+```
+
+#### Dynamic Bundler Switching
+
+Switch bundlers per environment or dynamically:
+
+```yaml
+# Switch bundlers per environment
+development:
+  bundler: bun  # Fast for development
+
+production:
+  bundler: esbuild  # Speed for production
+
+# Or use different bundlers for different tasks
+bundlers:
+  esbuild:
+    commands:
+      build: "esbuild --production"
+  webpack:
+    commands:
+      build: "webpack --config webpack.prod.js"
+```
+
+#### Custom Entry Points and Outputs
+
+Configure multiple entry points and custom outputs:
+
+```yaml
+default:
+  entrypoints: ["./app/javascript/application.js", "./app/javascript/admin.js"]
+  outdir: "app/assets/builds"
+
+# Or single entrypoint
+default:
+  entrypoint: "./app/javascript/application.js"
+  outdir: "app/assets/builds"
 ```
 
 ## Usage
