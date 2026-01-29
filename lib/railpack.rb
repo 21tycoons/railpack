@@ -1,6 +1,11 @@
 # Railpack - Multi-bundler asset pipeline for Rails
 require 'logger'
+
+require 'active_support/concern'
+require 'active_support/core_ext/module/attribute_accessors'
+
 require_relative "railpack/version"
+require_relative "railpack/hooks"
 require_relative "railpack/bundler"
 require_relative "railpack/bundlers/bun_bundler"
 require_relative "railpack/bundlers/esbuild_bundler"
@@ -12,6 +17,8 @@ require_relative "railpack/manager"
 
 module Railpack
   class Error < StandardError; end
+
+  include Hooks
 
   class << self
     attr_writer :logger
@@ -27,40 +34,15 @@ module Railpack
     def manager
       @manager ||= Manager.new
     end
-  end
 
-  # Hook system for events
-  def self.on_error(&block)
-    @error_hooks ||= []
-    @error_hooks << block
-  end
 
-  def self.on_build_start(&block)
-    @build_start_hooks ||= []
-    @build_start_hooks << block
-  end
-
-  def self.on_build_complete(&block)
-    @build_complete_hooks ||= []
-    @build_complete_hooks << block
-  end
-
-  # Trigger hooks
-  def self.trigger_error(error)
-    @error_hooks&.each { |hook| hook.call(error) }
-  end
-
-  def self.trigger_build_start(config)
-    @build_start_hooks&.each { |hook| hook.call(config) }
-  end
-
-  def self.trigger_build_complete(result)
-    @build_complete_hooks&.each { |hook| hook.call(result) }
   end
 
   # Delegate to manager
   def self.method_missing(method, *args, &block)
-    if manager.respond_to?(method)
+    if singleton_class.method_defined?(method) || private_method_defined?(method)
+      send(method, *args, &block)
+    elsif manager.respond_to?(method)
       manager.send(method, *args, &block)
     else
       super
@@ -68,6 +50,9 @@ module Railpack
   end
 
   def self.respond_to_missing?(method, include_private = false)
-    manager.respond_to?(method) || super
+    singleton_class.method_defined?(method) ||
+    private_method_defined?(method) ||
+    manager.respond_to?(method) ||
+    super
   end
 end

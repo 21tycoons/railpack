@@ -163,8 +163,8 @@ class BundlerTest < Minitest::Test
   def test_bundler_install_method
     bundler = Railpack::BunBundler.new({})
 
-    # Mock system to return true (command success)
-    bundler.define_singleton_method(:system) do |*args|
+    # Mock execute! to return true (command success)
+    bundler.define_singleton_method(:execute!) do |*args|
       true
     end
 
