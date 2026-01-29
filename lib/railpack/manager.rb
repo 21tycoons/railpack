@@ -128,7 +128,6 @@ module Railpack
       end
     end
 
-    # Alias for convenience
     singleton_class.alias_method :enhance, :enhance_assets_precompile
 
     private

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    railpack (1.5.0)
+    railpack (1.6.0)
       activesupport (>= 6.1.0)
 
 GEM

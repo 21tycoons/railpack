@@ -168,10 +168,10 @@ module Railpack
 
     private
 
-    def detect_package_manager
-      return "yarn" if File.exist?("yarn.lock")
-      return "pnpm" if File.exist?("pnpm-lock.yaml") || File.exist?("pnpm-workspace.yaml")
-      "npm" # default fallback
-    end
+      def detect_package_manager
+        return "yarn" if File.exist?("yarn.lock")
+        return "pnpm" if File.exist?("pnpm-lock.yaml") || File.exist?("pnpm-workspace.yaml")
+        "npm" # default fallback
+      end
   end
 end

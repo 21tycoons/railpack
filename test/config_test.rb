@@ -173,6 +173,8 @@ class ConfigTest < Minitest::Test
                      Object.const_set(:Rails, Module.new)
                    end
 
+    # Reset any memoized @root and override the method
+    rails_module.instance_variable_set(:@root, nil)
     rails_module.define_singleton_method(:root) { Pathname.new(path) }
   end
 end
