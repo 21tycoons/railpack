@@ -33,8 +33,6 @@ module Railpack
     def manager
       @manager ||= Manager.new
     end
-
-
   end
 
   # Delegate to manager
