@@ -7,6 +7,7 @@ require_relative "railpack/bundlers/esbuild_bundler"
 require_relative "railpack/bundlers/rollup_bundler"
 require_relative "railpack/bundlers/webpack_bundler"
 require_relative "railpack/config"
+require_relative "railpack/manifest"
 require_relative "railpack/manager"
 
 module Railpack

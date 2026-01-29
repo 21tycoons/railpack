@@ -107,20 +107,6 @@ module Railpack
       for_environment(env).key?(config_key) || super
     end
 
-    # Build command flags from config
-    def build_flags(env = current_env)
-      cfg = for_environment(env)
-      flags = []
-
-      flags << "--target=#{cfg['target']}" if cfg['target']
-      flags << "--format=#{cfg['format']}" if cfg['format']
-      flags << "--minify" if cfg['minify']
-      flags << "--sourcemap" if cfg['sourcemap']
-      flags << "--splitting" if cfg['splitting']
-
-      flags
-    end
-
     # Build command arguments
     def build_args(env = current_env)
       cfg = for_environment(env)
@@ -138,6 +124,30 @@ module Railpack
       args.concat(build_flags(env))
 
       args
+    end
+
+    # Build command flags (for dynamic bundler construction)
+    def build_flags(env = current_env)
+      cfg = for_environment(env)
+      flags = []
+
+      flags << "--target=#{cfg['target']}" if cfg['target']
+      flags << "--format=#{cfg['format']}" if cfg['format']
+      flags << "--minify" if cfg['minify']
+      flags << "--sourcemap" if cfg['sourcemap']
+      flags << "--splitting" if cfg['splitting']
+
+      flags
+    end
+
+    # Watch command arguments (can be overridden in config)
+    def watch_args(env = current_env)
+      build_args(env) # Default to same as build
+    end
+
+    # Watch command flags (can be overridden in config)
+    def watch_flags(env = current_env)
+      build_flags(env) # Default to same as build
     end
 
     private

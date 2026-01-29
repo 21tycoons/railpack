@@ -1,25 +1,19 @@
 module Railpack
   class BunBundler < Bundler
+    def base_command
+      "bun"
+    end
+
     def commands
       {
-        build: "bun run build",
-        watch: "bun run watch",
-        build_dev: "bun run build:development",
-        clean: "bun run clean",
-        install: "bun install",
-        add: "bun add",
-        remove: "bun remove",
-        exec: "bun",
-        version: "bun --version"
+        build: "#{base_command} run build",
+        watch: "#{base_command} run watch",
+        install: "#{base_command} install",
+        add: "#{base_command} add",
+        remove: "#{base_command} remove",
+        exec: base_command,
+        version: "#{base_command} --version"
       }
-    end
-
-    def build!(args = [])
-      execute!([commands[:build], *args])
-    end
-
-    def watch(args = [])
-      execute([commands[:watch], *args])
     end
 
     def install!(args = [])
@@ -44,6 +38,16 @@ module Railpack
 
     def installed?
       system("#{commands[:version]} > /dev/null 2>&1")
+    end
+
+    def build!(args = [])
+      full_args = build_command_args(:build, args)
+      execute!([commands[:build], *full_args])
+    end
+
+    def watch(args = [])
+      full_args = build_command_args(:watch, args)
+      execute([commands[:watch], *full_args])
     end
   end
 end
