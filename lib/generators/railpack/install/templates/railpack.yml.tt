@@ -1,0 +1,42 @@
+# Choose your bundler (bun, esbuild, rollup, webpack)
+bundler: bun
+
+# Global defaults
+default:
+  target: browser
+  format: esm
+  minify: false
+  sourcemap: false
+  entrypoint: "./app/javascript/application.js"
+  outdir: "app/assets/builds"
+  analyze_bundle: false
+
+# Bundler-specific config
+bun:
+  target: browser
+  format: esm
+
+esbuild:
+  target: browser
+  format: esm
+  platform: browser
+  watch_flags: ["--watch"]
+
+rollup:
+  format: esm
+  sourcemap: true
+  watch_flags: ["--watch"]
+
+webpack:
+  mode: production
+  target: web
+  watch_flags: ["--watch"]
+
+# Environment overrides
+development:
+  sourcemap: true
+  analyze_bundle: true
+
+production:
+  minify: true
+  analyze_bundle: true

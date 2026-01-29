@@ -2,6 +2,16 @@
 
 **Multi-bundler asset pipeline for Rails** - Choose your bundler, unified Rails integration.
 
+## Installation
+
+1. Add to Gemfile: `gem "railpack"`
+2. Run: `bin/rails railpack:install`  # Generator + initial dependencies
+3. Edit config/railpack.yml to configure/switch bundlers (This creates `config/railpack.yml` with sensible defaults for your Rails app.)
+4. Commands:
+   - `bin/rails railpack:install` # Dependencies (auto on deploy)
+   - `bin/rails railpack:build`   # Assets
+   - `bin/rails railpack:watch`   # Dev live reload
+
 ## Features
 
 - 🚀 **Multiple Bundlers**: Bun, esbuild, Rollup, Webpack support
@@ -11,21 +21,7 @@
 - 🎣 **Event Hooks**: Build lifecycle callbacks
 - 📦 **Production Ready**: Optimized builds for all bundlers
 
-## Installation
 
-Add to your Gemfile:
-
-```ruby
-gem 'railpack'
-```
-
-Then run the install generator:
-
-```bash
-rails railpack:install
-```
-
-This creates `config/railpack.yml` with sensible defaults for your Rails app.
 
 ## Configuration
 
