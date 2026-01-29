@@ -123,7 +123,7 @@ module Railpack
     end
 
     def exec(*args)
-      execute(["node", *args])
+      execute([package_manager, "exec", *args])
     end
 
     def version
