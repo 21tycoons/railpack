@@ -196,7 +196,8 @@ module Railpack
           "esbuild" => {
             "target" => "browser",
             "format" => "esm",
-            "platform" => "browser"
+            "platform" => "browser",
+            "watch_flags" => ["--watch"]
           },
           "rollup" => {
             "format" => "esm",

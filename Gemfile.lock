@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    railpack (1.3.3)
+    railpack (1.3.4)
 
 GEM
   remote: https://rubygems.org/

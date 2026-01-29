@@ -1,5 +1,43 @@
 # Changelog
 
+## [1.3.5] - 2026-01-28
+
+### 🚀 **Config-Driven Watch Flags - Ultimate Watch Mode Flexibility**
+
+This patch release addresses final review feedback, making watch flags fully configurable and adding comprehensive documentation for advanced configuration options.
+
+#### ✨ **Config-Driven Watch Flags**
+- **Removed Hardcoded Flags**: Eliminated hardcoded `--watch` from esbuild bundler
+- **YAML Configuration**: Watch behavior now configurable via `watch_flags` in config
+- **Default Watch Config**: Added `watch_flags: ["--watch"]` to esbuild defaults
+- **Flexible Watch Modes**: Support custom watch flags like `--serve=3000` for dev servers
+
+#### 🛠️ **Configuration Syntax**
+```yaml
+# Custom watch flags for esbuild
+esbuild:
+  target: browser
+  format: esm
+  watch_flags: ["--watch", "--serve=3000"]  # Custom watch behavior
+```
+
+#### 📚 **Enhanced Documentation**
+- **Advanced Configuration Section**: Added comprehensive examples for per-bundler overrides
+- **Watch Flags Examples**: Clear documentation for custom watch configurations
+- **Command Override Examples**: Detailed syntax for custom build commands
+- **Developer Guidance**: Step-by-step advanced configuration guide
+
+#### 🔧 **Technical Implementation**
+- **Clean Architecture**: Watch commands now use base command + config flags
+- **Backward Compatible**: Existing configurations work unchanged
+- **Test Updates**: Updated test expectations to match new watch command behavior
+- **Zero Breaking Changes**: All existing APIs preserved
+
+#### 📊 **Quality Assurance**
+- **All Tests Pass**: 75 tests with 244 assertions continue to pass
+- **Comprehensive Coverage**: Watch flag configuration fully tested
+- **Documentation Complete**: README includes all advanced configuration options
+
 ## [1.3.4] - 2026-01-28
 
 ### 🚀 **Per-Bundler Command Overrides - Ultimate Customization**

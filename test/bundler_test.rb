@@ -40,7 +40,7 @@ class BundlerTest < Minitest::Test
     commands = bundler.send(:commands)
 
     assert_equal 'esbuild', commands[:build]
-    assert_equal 'esbuild --watch', commands[:watch]
+    assert_equal 'esbuild', commands[:watch]
     assert_equal 'npm install', commands[:install]
   end
 

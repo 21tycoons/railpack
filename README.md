@@ -60,6 +60,35 @@ production:
   analyze_bundle: true  # Production bundle analysis
 ```
 
+### Advanced Configuration
+
+#### Per-Bundler Command Overrides
+
+Override default commands for specific bundlers:
+
+```yaml
+bundlers:
+  esbuild:
+    commands:
+      build: "esbuild-custom --special-flag"
+      watch: "esbuild-custom --watch --dev-mode"
+      version: "esbuild-custom --version-check"
+  bun:
+    commands:
+      build: "bunx custom-build"
+```
+
+#### Watch Flags Configuration
+
+Configure watch-specific flags (different from build flags):
+
+```yaml
+esbuild:
+  target: browser
+  format: esm
+  watch_flags: ["--watch", "--serve=3000"]  # Custom watch flags
+```
+
 ## Usage
 
 ### Basic Commands
