@@ -1,4 +1,3 @@
-# Railpack - Multi-bundler asset pipeline for Rails
 require 'logger'
 
 require 'active_support/concern'

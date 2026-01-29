@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module Railpack
-  # Hook system using Rails-style mattr_accessor patterns
   module Hooks
     extend ActiveSupport::Concern
 
