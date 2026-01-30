@@ -128,7 +128,46 @@ class RailsIntegrationTest < Minitest::Test
   end
 
   def test_rails_rake_task_integration
-    skip "Skipping Rake integration test due to complex mocking requirements"
+    # Mock Rake environment properly
+    rake_mock = Module.new
+    task_class_mock = Class.new do
+      def self.task_defined?(name)
+        name == "assets:precompile"
+      end
+
+      def self.[](name)
+        @task_instance ||= Class.new do
+          def enhance(*args, &block)
+            # Store the block for verification
+            @enhancement_block = block
+          end
+
+          def enhancement_block
+            @enhancement_block
+          end
+        end.new
+      end
+    end
+
+    rake_mock.const_set(:Task, task_class_mock)
+    Object.const_set(:Rake, rake_mock)
+
+    # Test that enhance_assets_precompile works with Rake available
+    enhancement_executed = false
+    Railpack::Manager.enhance_assets_precompile do
+      enhancement_executed = true
+      "Enhanced assets:precompile task"
+    end
+
+    # Verify the enhancement was registered (block should be stored)
+    task_instance = Rake::Task["assets:precompile"]
+    assert task_instance.enhancement_block.is_a?(Proc), "Enhancement block should be registered"
+
+    # Execute the enhancement block manually to verify it works
+    result = task_instance.enhancement_block.call
+    assert_equal "Enhanced assets:precompile task", result
+  ensure
+    Object.send(:remove_const, :Rake) if defined?(Rake)
   end
 
   def test_rails_config_integration
@@ -260,6 +299,78 @@ class RailsIntegrationTest < Minitest::Test
   end
 
   def test_rails_sprockets_manifest_generation_integration
-    skip "Skipping Sprockets manifest integration test due to Rails mocking issues"
+    # Mock Rails with Sprockets properly for full integration test
+    rails_mock = Module.new
+    rails_mock.define_singleton_method(:version) { '6.1.0' }
+    rails_mock.define_singleton_method(:root) { Pathname.new(@temp_dir) }
+
+    # Mock Rails application with assets config that behaves like Sprockets (not Propshaft)
+    app_mock = Object.new
+    def app_mock.config
+      @config ||= Object.new.tap do |config|
+        def config.assets
+          @assets ||= Object.new.tap do |assets|
+            def assets.is_a?(klass)
+              # Return false for Propshaft::Assembler (simulating Sprockets environment)
+              false
+            end
+          end
+        end
+      end
+    end
+
+    rails_mock.define_singleton_method(:application) { app_mock }
+    Object.const_set(:Rails, rails_mock)
+
+    # Mock Sprockets with Manifest constant
+    sprockets_mock = Module.new
+    sprockets_mock.const_set(:Manifest, Class.new)
+    Object.const_set(:Sprockets, sprockets_mock)
+
+    # Create Rails-like build directory
+    builds_dir = File.join(@temp_dir, 'app/assets/builds')
+    FileUtils.mkdir_p(builds_dir)
+
+    # Create assets like Rails would
+    File.write(File.join(builds_dir, 'application.js'), '// Rails application.js')
+    File.write(File.join(builds_dir, 'application.css'), '/* Rails application.css */')
+
+    config = { 'outdir' => builds_dir }
+    manager = Railpack::Manager.new
+
+    # Force Sprockets detection by mocking the detection method
+    manager.define_singleton_method(:detect_asset_pipeline) { :sprockets }
+
+    # This should generate Sprockets manifest through the normal code path
+    manager.send(:generate_asset_manifest, config)
+
+    # Should have generated Sprockets manifest
+    manifest_files = Dir.glob("#{builds_dir}/.sprockets-manifest-*.json")
+    assert_equal 1, manifest_files.length, "Should generate exactly one Sprockets manifest file"
+
+    manifest_path = manifest_files.first
+    assert File.exist?(manifest_path), "Manifest file should exist"
+
+    manifest = JSON.parse(File.read(manifest_path))
+    assert manifest.key?('files'), "Manifest should have files section"
+    assert manifest.key?('assets'), "Manifest should have assets section"
+
+    # Check that application files are mapped
+    assert manifest['assets'].key?('application.js'), "Should map application.js"
+    assert manifest['assets'].key?('application.css'), "Should map application.css"
+
+    # Check file entries exist
+    assert manifest['files'].key?(manifest['assets']['application.js']), "Should have application.js file entry"
+    assert manifest['files'].key?(manifest['assets']['application.css']), "Should have application.css file entry"
+
+    # Verify file entry structure
+    js_entry = manifest['files'][manifest['assets']['application.js']]
+    assert js_entry.key?('logical_path'), "JS entry should have logical_path"
+    assert js_entry.key?('pathname'), "JS entry should have pathname"
+    assert js_entry.key?('digest'), "JS entry should have digest"
+    assert js_entry.key?('size'), "JS entry should have size"
+    assert js_entry.key?('mtime'), "JS entry should have mtime"
+  ensure
+    Object.send(:remove_const, :Sprockets) if defined?(Sprockets)
   end
 end
