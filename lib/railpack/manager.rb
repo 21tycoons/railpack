@@ -18,9 +18,9 @@ module Railpack
   # and generates appropriate manifests for asset discovery.
   class Manager
     BUNDLERS = {
-      'bun' => BunBundler,
+      'bun'     => BunBundler,
       'esbuild' => EsbuildBundler,
-      'rollup' => RollupBundler,
+      'rollup'  => RollupBundler,
       'webpack' => WebpackBundler
     }
 
