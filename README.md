@@ -6,7 +6,7 @@
 
 1. Add to Gemfile: `gem "railpack"`
 2. Run: `bin/rails railpack:install`  # Generator + initial dependencies
-3. Edit config/railpack.yml to configure/switch bundlers (This creates `config/railpack.yml` with sensible defaults for your Rails app.)
+3. Edit config/railpack.yml to configure/switch bundlers (Railpack creates `config/railpack.yml` with sensible defaults for your Rails app.)
 4. Commands:
    - `bin/rails railpack:install` # Dependencies (auto on deploy)
    - `bin/rails railpack:build`   # Assets
