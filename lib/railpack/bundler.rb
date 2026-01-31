@@ -91,11 +91,19 @@ module Railpack
     protected
 
       def execute(command_array)
-        system(*command_array)
+        if respond_to?(:base_command)
+          system(base_command, *command_array)
+        else
+          system(*command_array)
+        end
       end
 
       def execute!(command_array)
-        stdout, stderr, status = Open3.capture3(*command_array)
+        if respond_to?(:base_command)
+          stdout, stderr, status = Open3.capture3(base_command, *command_array)
+        else
+          stdout, stderr, status = Open3.capture3(*command_array)
+        end
 
         unless status.success?
           command_string = Shellwords.join(command_array)
@@ -143,7 +151,7 @@ module Railpack
     end
 
     def install!(args = [])
-      execute!([package_manager, "install", *args])
+      execute([package_manager, "install", *args])
     end
 
     def add(*packages)

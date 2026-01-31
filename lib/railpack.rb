@@ -4,6 +4,7 @@ require 'active_support/concern'
 require 'active_support/core_ext/module/attribute_accessors'
 
 require_relative "railpack/version"
+require_relative "railpack/railtie"
 require_relative "railpack/hooks"
 require_relative "railpack/bundler"
 require_relative "railpack/bundlers/bun_bundler"

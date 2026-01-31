@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.6.3] - 2026-01-31
+
+### 🔧 **Rails 8 Stability Fixes**
+
+This release includes stability improvements and compatibility fixes for Rails 8 discovered during real-world testing.
+
+#### ✨ **Rails Integration**
+- **Added Rails::Railtie** - Proper Rails::Railtie class for automatic Rake task loading
+- **Auto-loading Support** - Rake tasks now load automatically with Rails 8
+
+#### 🛠️ **Bundler Improvements**
+- **Bun Path Detection** - Automatic detection of bun executable across different systems
+- **Command Architecture** - Refactored bundler commands for better Rails 8 compatibility
+- **Package.json Support** - Enhanced script detection for flexible workflows
+
+#### 🧪 **Quality Assurance**
+- **All Tests Pass** - 75 tests with 259 assertions continue to pass
+- **Rails 8 Compatible** - Verified compatibility with Rails 8
+- **Backward Compatible** - All existing functionality preserved
+
 ## [1.6.2] - 2026-01-29
 
 ### 🧪 **Test Suite Completion - Previously Skipped Tests Now Passing**
