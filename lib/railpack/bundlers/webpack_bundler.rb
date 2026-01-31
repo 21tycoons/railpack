@@ -15,7 +15,7 @@ module Railpack
 
     def build!(args = [])
       full_args = build_command_args(:build, args)
-      execute!(full_args)
+      execute(full_args)
     end
 
     def watch(args = [])

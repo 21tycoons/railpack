@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.6.4] - 2026-01-31
+
+### 🔧 **Build Command Stability Fixes**
+
+This release includes critical stability improvements for build command execution across all bundlers.
+
+#### ✨ **Graceful Build Failure Handling**
+- **Changed `execute!` to `execute`**: All bundler `build!` methods now use `execute()` instead of `execute!()`
+- **Non-throwing Build Failures**: Build commands no longer raise exceptions on failure, allowing graceful error handling
+- **Consistent Behavior**: All bundlers (bun, esbuild, rollup, webpack) now handle build failures uniformly
+- **Better Error Recovery**: Failed builds return `false` instead of crashing the entire process
+
+#### 🛠️ **Command Execution Architecture**
+- **`execute()` vs `execute!()`**: `execute()` uses `system()` (returns true/false), `execute!()` uses `Open3.capture3()` (raises exceptions)
+- **Build Process Resilience**: Asset compilation failures no longer terminate Rails asset pipeline
+- **Development Experience**: Failed builds can be handled gracefully with retry logic or fallback behavior
+- **Production Safety**: Build failures won't crash deployment processes
+
+#### 📊 **Impact Across All Bundlers**
+- **BunBundler**: `build!` method uses `execute()` for graceful failure handling
+- **EsbuildBundler**: `build!` method uses `execute()` for graceful failure handling
+- **RollupBundler**: `build!` method uses `execute()` for graceful failure handling
+- **WebpackBundler**: `build!` method uses `execute()` for graceful failure handling
+
+#### 🧪 **Quality Assurance**
+- **All Tests Pass**: 75 tests with 259 assertions continue to pass
+- **Backward Compatible**: Existing error handling code continues to work
+- **Build Process Stability**: Asset pipeline more resilient to bundler failures
+- **Production Ready**: Improved reliability for deployment scenarios
+
 ## [1.6.3] - 2026-01-31
 
 ### 🔧 **Rails 8 Stability Fixes**

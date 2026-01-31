@@ -49,7 +49,7 @@ module Railpack
 
     def build!(args = [])
       full_args = build_command_args(:build, args)
-      execute!([commands[:build], *full_args])
+      execute([commands[:build], *full_args])
     end
 
     def watch(args = [])
