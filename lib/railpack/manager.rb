@@ -217,10 +217,15 @@ module Railpack
         # Check Rails.application.config.assets class directly (more reliable)
         if defined?(Rails) && Rails.respond_to?(:application) && Rails.application
           assets_config = Rails.application.config.assets
-          if assets_config.is_a?(Propshaft::Assembler) || defined?(Propshaft::Assembler)
-            :propshaft
-          elsif defined?(Sprockets::Manifest)
-            :sprockets
+          begin
+            if defined?(Propshaft) && Propshaft.const_defined?(:Assembler) && assets_config.is_a?(Propshaft::Assembler)
+              return :propshaft
+            end
+          rescue NameError
+            # Propshaft::Assembler not available
+          end
+          if defined?(Sprockets::Manifest)
+            return :sprockets
           end
         end
 
