@@ -24,6 +24,11 @@ module Railpack
       end
 
       def trigger_error(error)
+        # Report to Rails error reporter if available (Rails 7+)
+        if defined?(Rails) && Rails.respond_to?(:error) && Rails.error.respond_to?(:report)
+          Rails.error.report(error)
+        end
+
         error_hooks.each { |hook| hook.call(error) }
       end
 
