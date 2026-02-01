@@ -33,7 +33,7 @@ module Railpack
 
     def reload!
       @config = Config.new
-      Rails.logger.info "🔄 Railpack configuration reloaded from #{config.config_path}" if defined?(Rails) && Rails.logger
+      Rails.logger.info "🔄 Railpack configuration reloaded" if defined?(Rails) && Rails.logger
       true
     end
 
