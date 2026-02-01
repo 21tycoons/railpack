@@ -11,6 +11,7 @@
    - `bin/rails railpack:install` # Dependencies (auto on deploy)
    - `bin/rails railpack:build`   # Assets
    - `bin/rails railpack:watch`   # Dev live reload
+   - `bin/rails railpack:reload`  # Reload config without restart
 
 ## Features
 
@@ -148,6 +149,9 @@ rails railpack:build
 
 # Watch and rebuild during development
 rails railpack:watch
+
+# Reload configuration without server restart
+rails railpack:reload
 
 # Install dependencies
 rails railpack:install
