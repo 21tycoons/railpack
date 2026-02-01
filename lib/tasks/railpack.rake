@@ -14,6 +14,12 @@ namespace :railpack do
   task watch: :environment do
     Railpack.manager.watch
   end
+
+  desc "Reload Railpack configuration from YAML"
+  task reload: :environment do
+    Railpack.reload!
+    puts "✅ Railpack configuration reloaded"
+  end
 end
 
 # Hook into Rails asset pipeline (exactly like jsbundling-rails)
